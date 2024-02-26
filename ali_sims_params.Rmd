@@ -1,0 +1,82 @@
+---
+title: "ali_sim_params"
+author: "Sarah Lotspeich"
+date: "2024-02-26"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+## Read in summary data (one row per patient)
+summ_data = read.csv("~/Documents/ali-data/summary_data.csv") |> 
+  ### Create indicator of >= 1 healthcare encounter (ED visit or hospital admission)
+  dplyr::mutate(ANY_ENCOUNTERS = as.numeric(NUM_ENCOUNTERS > 0)) 
+```
+
+## Distribution of age at encounter
+
+```{r}
+## Model age at first encounter with a Poisson distribution
+glm(formula = AGE_AT_ENCOUNTER ~ 1, 
+    family = poisson, 
+    data = summ_data) |> 
+  coefficients() |> 
+  exp()
+```
+
+## Calculate error-prone ALI from EHR
+
+```{r}
+## Calculate components of the error-prone version of ALI from EHR 
+summ_data = summ_data |> 
+  dplyr::mutate(CREAT_C_POINT = as.numeric(CREAT_C < 110 & SEX == "Male") +
+                  as.numeric(CREAT_C < 100 & SEX == "Female"), 
+                ALB_POINT = as.numeric(ALB >= 3.5), 
+                BMI_POINT = as.numeric(BMI > 30),
+                BP_SYSTOLIC_POINT = as.numeric(BP_SYSTOLIC > 140), 
+                BP_DIASTOLIC_POINT = as.numeric(BP_DIASTOLIC > 90), 
+                A1C_POINT = as.numeric(A1C >= 6.5), 
+                CHOL_POINT = as.numeric(CHOL >= 200), 
+                TRIG_POINT = as.numeric(TRIG >= 150), 
+                CRP_POINT = as.numeric(CRP >= 10), 
+                HCST_POINT = as.numeric(HCST > 50),
+                U_ALBUMIN_CREAT_RATIO = ALB_U / CREAT_U, 
+                U_ALBUMIN_CREAT_RATIO_POINT = as.numeric(U_ALBUMIN_CREAT_RATIO < 30)
+  )
+## Define components of the Seemen et al. ALI
+seemen_components = c("CREAT_C_POINT", "ALB_POINT", "BMI_POINT", "BP_SYSTOLIC_POINT",
+                      "BP_DIASTOLIC_POINT", "A1C_POINT", "CHOL_POINT", "TRIG_POINT", 
+                      "CRP_POINT", "HCST_POINT")
+### Number of non-missing components
+ALI_DENOM = rowSums(!is.na(summ_data[, seemen_components])) 
+### Number of components equal to 1
+ALI_NUM = rowSums(summ_data[, seemen_components], na.rm = TRUE) 
+summ_data$ALI_Seeman = ALI_NUM / ALI_DENOM
+```
+
+## Naive model of ALI and healthcare utilization
+
+```{r}
+## Naive model parameters
+naive_mod = glm(formula = ANY_ENCOUNTERS ~ ALI_Seeman + AGE_AT_ENCOUNTER, 
+                family = "binomial", 
+                data = summ_data)
+summary(naive_mod)
+```
+
+## Naive proportions "yes" per ALI component
+
+```{r}
+## probability of stressor = YES
+colMeans(summ_data[, seemen_components], na.rm = TRUE) 
+```
+
+## Percent missing data per ALI component
+
+```{r}
+## probability of stressor = NA
+colMeans(is.na(summ_data[, seemen_components]), na.rm = TRUE) 
+```
