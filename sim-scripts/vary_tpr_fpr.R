@@ -8,7 +8,7 @@ source("~/Documents/logreg2phRonly/R/profile_out.R")
 
 # Set parameters that won't be varied in the loop
 ## These values will be set as the defaults in the sim_data() function for convenience
-lambda_age = 45.662 ## mean of Poisson for Z
+lambda_age = 45.66 ## mean of Poisson for Z
 beta0 = -1.57 ## intercept in model of Y|X,Z
 beta1 = 0.95 ## coefficient on X in model of Y|X,Z
 beta2 = 0.01 ## coefficient on Z in model of Y|X,Z
