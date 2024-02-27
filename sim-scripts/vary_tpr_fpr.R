@@ -86,7 +86,7 @@ sim_data_fit = function(id, N = 1000, tpr = 0.99, fpr = 0.01) {
                        smle_beta0 = NA, smle_beta1 = NA, smle_beta2 = NA)
   
   # Simulate data 
-  temp = sim_data(N = N) |> 
+  temp = sim_data(N = N, tpr = tpr, fpr = fpr) |> 
     dplyr::mutate(Xmiss = dplyr::if_else(condition = V == 0, 
                                          true = NA, 
                                          false = X))
@@ -149,7 +149,9 @@ tpr99_fpr01 = do.call(what = rbind,
                                                simplify = FALSE,
                                                N = 1000,
                                                tpr = 0.99,
-                                               fpr = 0.01))
+                                               fpr = 0.01)) |> 
+  dplyr::mutate(tpr = 0.99, 
+                fpr = 0.01)
 tpr99_fpr01 |> 
   write.csv("ALI_EHR/sim-data/tpr99_fpr01.csv", 
             row.names = FALSE)
@@ -162,7 +164,9 @@ tpr95_fpr05 = do.call(what = rbind,
                                                simplify = FALSE,
                                                N = 1000,
                                                tpr = 0.95,
-                                               fpr = 0.05))
+                                               fpr = 0.05)) |> 
+  dplyr::mutate(tpr = 0.95, 
+                fpr = 0.05)
 tpr95_fpr05 |> 
   write.csv("ALI_EHR/sim-data/tpr95_fpr05.csv", 
             row.names = FALSE)
@@ -175,7 +179,9 @@ tpr80_fpr20 = do.call(what = rbind,
                                                simplify = FALSE,
                                                N = 1000,
                                                tpr = 0.80,
-                                               fpr = 0.20))
+                                               fpr = 0.20)) |> 
+  dplyr::mutate(tpr = 0.8, 
+                fpr = 0.2)
 tpr80_fpr20 |> 
   write.csv("ALI_EHR/sim-data/tpr80_fpr20.csv", 
             row.names = FALSE)
@@ -188,7 +194,9 @@ tpr50_fpr50 = do.call(what = rbind,
                                                simplify = FALSE,
                                                N = 1000,
                                                tpr = 0.50,
-                                               fpr = 0.50))
+                                               fpr = 0.50)) |> 
+  dplyr::mutate(tpr = 0.5, 
+                fpr = 0.5)
 tpr50_fpr50 |> 
   write.csv("ALI_EHR/sim-data/tpr50_fpr50.csv", 
             row.names = FALSE)

@@ -102,7 +102,8 @@ sim_data_fit = function(id, N = 1000, audit_recovery = 1) {
                        smle_beta0 = NA, smle_beta1 = NA, smle_beta2 = NA)
   
   # Simulate data 
-  temp = sim_data(N = N) |> 
+  temp = sim_data(N = N, 
+                  audit_recovery = audit_recovery) |> 
     dplyr::mutate(Xmiss = dplyr::if_else(condition = V == 0, 
                                          true = NA, 
                                          false = X))
@@ -164,7 +165,8 @@ recover100 = do.call(what = rbind,
                                               FUN = sim_data_fit, 
                                               simplify = FALSE,
                                               N = 1000,
-                                              audit_recovery = 1))
+                                              audit_recovery = 1)) |> 
+  dplyr::mutate(prop_recovered = 1)
 recover100 |> 
   write.csv("ALI_EHR/sim-data/recover100.csv", 
             row.names = FALSE)
@@ -176,7 +178,8 @@ recover90 = do.call(what = rbind,
                                              FUN = sim_data_fit, 
                                              simplify = FALSE,
                                              N = 1000,
-                                             audit_recovery = 0.9))
+                                             audit_recovery = 0.9)) |> 
+  dplyr::mutate(prop_recovered = 0.9)
 recover90 |> 
   write.csv("ALI_EHR/sim-data/recover90.csv", 
             row.names = FALSE)
@@ -188,7 +191,8 @@ recover50 = do.call(what = rbind,
                                              FUN = sim_data_fit, 
                                              simplify = FALSE,
                                              N = 1000,
-                                             audit_recovery = 0.5))
+                                             audit_recovery = 0.5)) |> 
+  dplyr::mutate(prop_recovered = 0.5)
 recover50 |> 
   write.csv("ALI_EHR/sim-data/recover50.csv", 
             row.names = FALSE)
@@ -200,7 +204,8 @@ recover25 = do.call(what = rbind,
                                              FUN = sim_data_fit, 
                                              simplify = FALSE,
                                              N = 1000,
-                                             audit_recovery = 0.25))
+                                             audit_recovery = 0.25)) |> 
+  dplyr::mutate(prop_recovered = 0.25)
 recover25 |> 
   write.csv("ALI_EHR/sim-data/recover25.csv", 
             row.names = FALSE)
