@@ -41,13 +41,14 @@ sim_res = sim_res |>
 sim_res |> 
   ggplot(aes(x = error_sett, y = beta, fill = method)) + 
   geom_boxplot() + 
-  scale_fill_colorblind(name = "Method:") + 
+  scale_fill_manual(values = colorblind_pal()(5)[-1], 
+                    name = "Method:") + 
   geom_hline(yintercept = beta1, 
              linetype = 2, 
-             color = colorblind_pal()(5)[5])
+             color = "black") + 
   xlab("Error Rates in Allostatic Load Index Components") + 
   ylab("Estimated Coefficient") + 
-  theme_minimal() + 
+  theme_minimal(base_size = 18) + 
   theme(legend.position = "top", 
         axis.title = element_text(face = "bold"),
         legend.title = element_text(face = "bold")) 
@@ -67,4 +68,15 @@ sim_res |>
   dplyr::select(sim, prop_recovered, dplyr::ends_with("beta1")) |> 
   tidyr::gather("method", "beta", -c(1:2)) |> 
   ggplot(aes(x = prop_recovered, y = beta, fill = method)) + 
-  geom_boxplot()
+  geom_boxplot() + 
+  scale_fill_manual(values = colorblind_pal()(5)[-1], 
+                    name = "Method:") + 
+  geom_hline(yintercept = beta1, 
+             linetype = 2, 
+             color = "black") + 
+  xlab("Error Rates in Allostatic Load Index Components") + 
+  ylab("Estimated Coefficient") + 
+  theme_minimal(base_size = 18) + 
+  theme(legend.position = "top", 
+        axis.title = element_text(face = "bold"),
+        legend.title = element_text(face = "bold")) 

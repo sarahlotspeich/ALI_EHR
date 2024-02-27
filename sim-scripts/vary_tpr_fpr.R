@@ -1,4 +1,7 @@
-# Load library --------------------------------------------
+# Set working directory -----------------------------------------------
+setwd("~/Documents/")
+
+# Load library --------------------------------------------------------
 # library(sleev) ## for SMLE logistic regression
 source("~/Documents/logreg2phRonly/R/logreg2ph.R")
 source("~/Documents/logreg2phRonly/R/hessian_row.R")
@@ -83,10 +86,36 @@ sim_data_fit = function(id, N = 1000, tpr = 0.99, fpr = 0.01) {
                        gs_beta0 = NA, gs_beta1 = NA, gs_beta2 = NA,
                        naive_beta0 = NA, naive_beta1 = NA, naive_beta2 = NA,
                        cc_beta0 = NA, cc_beta1 = NA, cc_beta2 = NA,
-                       smle_beta0 = NA, smle_beta1 = NA, smle_beta2 = NA)
+                       smle_beta0 = NA, smle_beta1 = NA, smle_beta2 = NA,
+                       resampled_V = FALSE)
   
   # Simulate data 
-  temp = sim_data(N = N, tpr = tpr, fpr = fpr) |> 
+  temp = sim_data(N = N, tpr = tpr, fpr = fpr)
+  
+  # Setup B-splines
+  B = splines::bs(x = temp$Xstar, 
+                  df = nsieve, 
+                  Boundary.knots = range(temp$Xstar), 
+                  intercept = TRUE)
+  colnames(B) = paste0("bs", seq(1, nsieve))
+  temp = cbind(temp, B)
+  
+  # Check for empty sieves in B-splines of validated data
+  while(0 %in% colSums(temp[which(temp$V == 1), paste0("bs", 1:nsieve)])) {
+    ## Re-select subset for validation
+    audit_rows = sample(x = 1:N, 
+                        size = ceiling(pV * N), 
+                        replace = FALSE)
+    
+    ## Re-create validation indicator 
+    temp$V = as.numeric(temp$id %in% audit_rows)
+    
+    ## Validation indicators re-sampled
+    results[1, "resampled_V"] = TRUE
+  }
+  
+  # Create Xmiss to be NA if V = 0
+  temp = temp |> 
     dplyr::mutate(Xmiss = dplyr::if_else(condition = V == 0, 
                                          true = NA, 
                                          false = X))
@@ -111,14 +140,6 @@ sim_data_fit = function(id, N = 1000, tpr = 0.99, fpr = 0.01) {
   results[1, c("cc_beta0", "cc_beta1", "cc_beta2")] = coefficients(fit)
   
   # 4. SMLE
-  ## Setup B-splines
-  B = splines::bs(x = temp$Xstar, 
-                  df = nsieve, 
-                  Boundary.knots = range(temp$Xstar), 
-                  intercept = TRUE)
-  colnames(B) = paste0("bs", seq(1, nsieve))
-  temp = cbind(temp, B)
-  
   ## Fit SMLE
   suppressMessages(fit <- logreg2ph(
     Y_unval = NULL,
