@@ -8,6 +8,7 @@
 library(dplyr) # To wrangle data
 library(tidyr) # To transform data
 library(ggplot2) # To create plots
+library(ggthemes) # To get colorblind palletes 
 library(latex2exp) # To create LaTex labels for plots
 
 # Read in data 
@@ -29,14 +30,27 @@ sim_res = sim_res |>
                                     levels = c("TPR = 99%, FPR = 1%",
                                                "TPR = 95%, FPR = 5%", 
                                                "TPR = 80%, FPR = 20%", 
-                                               "TPR = 50%, FPR = 50%")))
+                                               "TPR = 50%, FPR = 50%"))) |> 
+  dplyr::select(sim, error_sett, dplyr::ends_with("beta1")) |> 
+  tidyr::gather("method", "beta", -c(1:2)) |> 
+  dplyr::mutate(method = factor(x = method, 
+                                levels = c("naive_beta1", "gs_beta1", "smle_beta1", "cc_beta1"), 
+                                labels = c("Naive", "Gold Standard", "SMLE", "Complete Case")))
 
 # Plot results 
 sim_res |> 
-  dplyr::select(sim, error_sett, dplyr::ends_with("beta1")) |> 
-  tidyr::gather("method", "beta", -c(1:2)) |> 
   ggplot(aes(x = error_sett, y = beta, fill = method)) + 
-  geom_boxplot()
+  geom_boxplot() + 
+  scale_fill_colorblind(name = "Method:") + 
+  geom_hline(yintercept = beta1, 
+             linetype = 2, 
+             color = colorblind_pal()(5)[5])
+  xlab("Error Rates in Allostatic Load Index Components") + 
+  ylab("Estimated Coefficient") + 
+  theme_minimal() + 
+  theme(legend.position = "top", 
+        axis.title = element_text(face = "bold"),
+        legend.title = element_text(face = "bold")) 
 
 # Read in data 
 sim_dir = "~/Documents/ALI_EHR/sim-data/"
