@@ -56,8 +56,8 @@ sim_data = function(N = 1000, audit_recovery = 1) {
                      nrow = N, 
                      ncol = 10, 
                      byrow = TRUE)
-  Xstar = rowMeans(Sstar_mat, 
-                   na.rm = TRUE)
+  Xstar1 = rowMeans(Sstar_mat, 
+                    na.rm = TRUE)
   
   ## Simulate outcome: healthcare utilization
   Y = rbinom(n = N, 
@@ -75,8 +75,8 @@ sim_data = function(N = 1000, audit_recovery = 1) {
                  nrow = N, 
                  ncol = 10, 
                  byrow = TRUE)
-  X = rowMeans(S_mat, 
-               na.rm = TRUE) ## ALI based on recovered components
+  Xstar2 = rowMeans(S_mat, 
+                    na.rm = TRUE) ## ALI based on recovered components
   
   ## Select subset for validation
   audit_rows = sample(x = 1:N, 
@@ -84,7 +84,7 @@ sim_data = function(N = 1000, audit_recovery = 1) {
                       replace = FALSE)
   
   ## Create dataset
-  dat = data.frame(id = 1:N, X, Xstar, Y, Z)
+  dat = data.frame(id = 1:N, X, Xstar1, Xstar2, Y, Z)
   
   ## Create validation indicator 
   dat$V = as.numeric(dat$id %in% audit_rows)
@@ -99,14 +99,39 @@ sim_data_fit = function(id, N = 1000, audit_recovery = 1) {
                        gs_beta0 = NA, gs_beta1 = NA, gs_beta2 = NA,
                        naive_beta0 = NA, naive_beta1 = NA, naive_beta2 = NA,
                        cc_beta0 = NA, cc_beta1 = NA, cc_beta2 = NA,
-                       smle_beta0 = NA, smle_beta1 = NA, smle_beta2 = NA)
+                       smle_beta0 = NA, smle_beta1 = NA, smle_beta2 = NA, 
+                       smle_conv_msg = NA)
   
   # Simulate data 
-  temp = sim_data(N = N, 
-                  audit_recovery = audit_recovery) |> 
+  temp = sim_data(N = N, audit_recovery = audit_recovery) 
+
+  # Setup B-splines
+  B = splines::bs(x = temp$Xstar1, 
+                  df = nsieve, 
+                  Boundary.knots = range(temp$Xstar1), 
+                  intercept = TRUE)
+  colnames(B) = paste0("bs", seq(1, nsieve))
+  temp = cbind(temp, B)
+  
+  # Check for empty sieves in B-splines of validated data
+  while(0 %in% colSums(temp[which(temp$V == 1), paste0("bs", 1:nsieve)])) {
+    ## Re-select subset for validation
+    audit_rows = sample(x = 1:N, 
+                        size = ceiling(pV * N), 
+                        replace = FALSE)
+    
+    ## Re-create validation indicator 
+    temp$V = as.numeric(temp$id %in% audit_rows)
+    
+    ## Validation indicators re-sampled
+    results[1, "resampled_V"] = TRUE
+  }
+  
+  # Create Xmiss to be NA if V = 0
+  temp = temp |> 
     dplyr::mutate(Xmiss = dplyr::if_else(condition = V == 0, 
                                          true = NA, 
-                                         false = X))
+                                         false = Xstar2))
   
   # 1. Gold standard
   fit = glm(formula = Y ~ X + Z, 
@@ -115,32 +140,23 @@ sim_data_fit = function(id, N = 1000, audit_recovery = 1) {
   results[1, c("gs_beta0", "gs_beta1", "gs_beta2")] = coefficients(fit)
   
   # 2. Naive
-  fit = glm(formula = Y ~ Xstar + Z, 
+  fit = glm(formula = Y ~ Xstar1 + Z, 
             family = "binomial", 
             data = temp)
   results[1, c("naive_beta0", "naive_beta1", "naive_beta2")] = coefficients(fit)
   
   # 3. Gold standard
-  fit = glm(formula = Y ~ X + Z, 
+  fit = glm(formula = Y ~ Xstar2 + Z, 
             family = "binomial", 
             data = temp, 
             subset = V == 1)
   results[1, c("cc_beta0", "cc_beta1", "cc_beta2")] = coefficients(fit)
   
   # 4. SMLE
-  ## Setup B-splines
-  B = splines::bs(x = temp$Xstar, 
-                  df = nsieve, 
-                  Boundary.knots = range(temp$Xstar), 
-                  intercept = TRUE)
-  colnames(B) = paste0("bs", seq(1, nsieve))
-  temp = cbind(temp, B)
-  
-  ## Fit SMLE
   suppressMessages(fit <- logreg2ph(
     Y_unval = NULL,
     Y_val = "Y",
-    X_unval = "Xstar",
+    X_unval = "Xstar1",
     X_val = "Xmiss",
     C = "Z",
     Validated = "V",
@@ -153,6 +169,7 @@ sim_data_fit = function(id, N = 1000, audit_recovery = 1) {
   ))
   
   results[1, c("smle_beta0", "smle_beta1", "smle_beta2")] = fit$model_coeff$coeff
+  results[1, "smle_conv_msg"] = fit$converged_msg
   
   # Return results
   return(results)
