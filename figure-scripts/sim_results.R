@@ -38,10 +38,11 @@ sim_res = sim_res |>
                                 labels = c("Naive", "Gold Standard", "SMLE", "Complete Case")))
 
 # Plot results 
+slide_colors = c("#C3CFFA", "#C9B0B0", "#DD6D53", "#60CAD6") ## colorblind_pal()(5)[-1]
 sim_res |> 
   ggplot(aes(x = error_sett, y = beta, fill = method)) + 
   geom_boxplot() + 
-  scale_fill_manual(values = colorblind_pal()(5)[-1], 
+  scale_fill_manual(values = slide_colors, 
                     name = "Method:") + 
   geom_hline(yintercept = beta1, 
              linetype = 2, 
@@ -52,24 +53,28 @@ sim_res |>
   theme(legend.position = "top", 
         axis.title = element_text(face = "bold"),
         legend.title = element_text(face = "bold")) 
+ggsave(filename = "~/Dropbox (Wake Forest University)/5 - CONFERENCES/2 - Slides/2024/ALI-EHR-ENAR-Mar2024/vary_fpr_tpr.png", 
+       device = "png", width = 12, height = 7, units = "in")
 
 # Read in data 
-sim_dir = "~/Documents/ALI_EHR/sim-data/"
 sim_files = paste0(sim_dir, list.files(path = sim_dir, pattern = "recover"))
 sim_res = do.call(what = dplyr::bind_rows, 
                   args = lapply(X = sim_files, 
-                                FUN = read.csv))
+                                FUN = read.csv)) |> 
+  dplyr::select(sim, prop_recovered, dplyr::ends_with("beta1")) |> 
+  tidyr::gather("method", "beta", -c(1:2)) |> 
+  dplyr::mutate(method = factor(x = method, 
+                                levels = c("naive_beta1", "gs_beta1", "smle_beta1", "cc_beta1"), 
+                                labels = c("Naive", "Gold Standard", "SMLE", "Complete Case")),
+                prop_recovered = factor(x = prop_recovered, 
+                                        levels = c(1, 0.9, 0.5, 0.25), 
+                                        labels = c("100%", "90%", "50%", "25%")))
 
 # Plot results 
 sim_res |> 
-  dplyr::mutate(prop_recovered = factor(x = prop_recovered, 
-                                        levels = c(1, 0.9, 0.5, 0.25), 
-                                        labels = c("100% Recovered", "90% Recovered", "50% Recovered", "25% Recovered"))) |> 
-  dplyr::select(sim, prop_recovered, dplyr::ends_with("beta1")) |> 
-  tidyr::gather("method", "beta", -c(1:2)) |> 
   ggplot(aes(x = prop_recovered, y = beta, fill = method)) + 
   geom_boxplot() + 
-  scale_fill_manual(values = colorblind_pal()(5)[-1], 
+  scale_fill_manual(values = slide_colors, 
                     name = "Method:") + 
   geom_hline(yintercept = beta1, 
              linetype = 2, 
@@ -80,3 +85,5 @@ sim_res |>
   theme(legend.position = "top", 
         axis.title = element_text(face = "bold"),
         legend.title = element_text(face = "bold")) 
+ggsave(filename = "~/Dropbox (Wake Forest University)/5 - CONFERENCES/2 - Slides/2024/ALI-EHR-ENAR-Mar2024/vary_audit_recovery.png", 
+       device = "png", width = 12, height = 7, units = "in")
