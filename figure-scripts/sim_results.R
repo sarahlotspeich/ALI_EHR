@@ -79,11 +79,12 @@ sim_res |>
   geom_hline(yintercept = beta1, 
              linetype = 2, 
              color = "black") + 
-  xlab("Error Rates in Allostatic Load Index Components") + 
+  xlab("Percent of Missing Allostatic Load Index Components Recovered from Audit") + 
   ylab("Estimated Coefficient") + 
   theme_minimal(base_size = 18) + 
   theme(legend.position = "top", 
         axis.title = element_text(face = "bold"),
-        legend.title = element_text(face = "bold")) 
+        legend.title = element_text(face = "bold")) + 
+  ylim(c(-10, 10))
 ggsave(filename = "~/Dropbox (Wake Forest University)/5 - CONFERENCES/2 - Slides/2024/ALI-EHR-ENAR-Mar2024/vary_audit_recovery.png", 
        device = "png", width = 12, height = 7, units = "in")
