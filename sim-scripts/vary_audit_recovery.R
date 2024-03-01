@@ -100,7 +100,7 @@ sim_data_fit = function(id, N = 1000, audit_recovery = 1) {
                        naive_beta0 = NA, naive_beta1 = NA, naive_beta2 = NA,
                        cc_beta0 = NA, cc_beta1 = NA, cc_beta2 = NA,
                        smle_beta0 = NA, smle_beta1 = NA, smle_beta2 = NA, 
-                       smle_conv_msg = NA)
+                       smle_conv_msg = NA, resampled_V = FALSE)
   
   # Simulate data 
   temp = sim_data(N = N, audit_recovery = audit_recovery) 
