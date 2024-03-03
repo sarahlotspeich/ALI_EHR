@@ -87,7 +87,7 @@ sim_data_fit = function(id, N = 1000, tpr = 0.99, fpr = 0.01) {
                        naive_beta0 = NA, naive_beta1 = NA, naive_beta2 = NA,
                        cc_beta0 = NA, cc_beta1 = NA, cc_beta2 = NA,
                        smle_beta0 = NA, smle_beta1 = NA, smle_beta2 = NA,
-                       resampled_V = FALSE)
+                       smle_conv_msg = NA, resampled_V = FALSE)
   
   # Simulate data 
   temp = sim_data(N = N, tpr = tpr, fpr = fpr)
@@ -140,7 +140,6 @@ sim_data_fit = function(id, N = 1000, tpr = 0.99, fpr = 0.01) {
   results[1, c("cc_beta0", "cc_beta1", "cc_beta2")] = coefficients(fit)
   
   # 4. SMLE
-  ## Fit SMLE
   suppressMessages(fit <- logreg2ph(
     Y_unval = NULL,
     Y_val = "Y",
@@ -155,8 +154,11 @@ sim_data_fit = function(id, N = 1000, tpr = 0.99, fpr = 0.01) {
     TOL = 1e-04,
     MAX_ITER = 1000
   ))
-  
+  if (!fit$converged) {
+    print(fit$converged_msg)
+  }
   results[1, c("smle_beta0", "smle_beta1", "smle_beta2")] = fit$model_coeff$coeff
+  results[1, "smle_conv_msg"] = fit$converged_msg
   
   # Return results
   return(results)
