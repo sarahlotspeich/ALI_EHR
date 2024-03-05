@@ -38,7 +38,7 @@ sim_res = sim_res |>
                                 labels = c("Naive", "Gold Standard", "SMLE", "Complete Case")))
 
 # Plot results 
-slide_colors = c("#C3CFFA", "#C9B0B0", "#DD6D53", "#60CAD6") ## colorblind_pal()(5)[-1]
+slide_colors = c("#C3CFFA", "#C9B0B0", "#DD6D53", "#60CAD6", "#F0D290") ## colorblind_pal()(5)[-1]
 sim_res |> 
   ggplot(aes(x = error_sett, y = beta, fill = method)) + 
   geom_boxplot() + 
@@ -87,4 +87,78 @@ sim_res |>
         legend.title = element_text(face = "bold")) + 
   ylim(c(-10, 10))
 ggsave(filename = "~/Dropbox (Wake Forest University)/5 - CONFERENCES/2 - Slides/2024/ALI-EHR-ENAR-Mar2024/vary_audit_recovery.png", 
+       device = "png", width = 12, height = 7, units = "in")
+
+# Read in data 
+sim_files = paste0(sim_dir, list.files(path = sim_dir, pattern = "vary_designs"))
+sim_res = do.call(what = dplyr::bind_rows, 
+                  args = lapply(X = sim_files, 
+                                FUN = read.csv)) |> 
+  dplyr::mutate(error_sett = paste0("TPR = ", round(100 * tpr), "%, FPR = ", round(100 * fpr), "%"),
+                error_sett = factor(x = error_sett, 
+                                    levels = c("TPR = 99%, FPR = 1%",
+                                               "TPR = 95%, FPR = 5%", 
+                                               "TPR = 80%, FPR = 20%", 
+                                               "TPR = 50%, FPR = 50%"))) |> 
+  dplyr::select(sim, error_sett, dplyr::ends_with("beta1")) |> 
+  tidyr::gather("design", "beta", -c(1:2)) |> 
+  dplyr::mutate(design = factor(x = design, 
+                                levels = c("srs_beta1", "cc_beta1", "bcc_beta1", "resid_beta1", "sfs_beta1"), 
+                                labels = c("SRS", "CC", "BCC*", "Residual", "Score Function"))) |> 
+  dplyr::filter(!is.na(beta)) |> 
+  dplyr::group_by(error_sett, design) |> 
+  dplyr::mutate(group_id = 1:dplyr::n()) |> 
+  dplyr::filter(group_id <= 500)
+
+# Plot results 
+sim_res |> 
+  ggplot(aes(x = error_sett, y = beta, fill = design)) + 
+  geom_boxplot() + 
+  scale_fill_manual(values = slide_colors, 
+                    name = "Method:") + 
+  geom_hline(yintercept = beta1, 
+             linetype = 2, 
+             color = "black") + 
+  xlab("Percent of Missing Allostatic Load Index Components Recovered from Audit") + 
+  ylab("Estimated Coefficient") + 
+  theme_minimal(base_size = 18) + 
+  theme(legend.position = "top", 
+        axis.title = element_text(face = "bold"),
+        legend.title = element_text(face = "bold")) + 
+  ylim(c(-10, 10))
+ggsave(filename = "~/Dropbox (Wake Forest University)/5 - CONFERENCES/2 - Slides/2024/ALI-EHR-ENAR-Mar2024/vary_audit_designs_tpr_fpr.png", 
+       device = "png", width = 12, height = 7, units = "in")
+
+# Read in data 
+sim_res = sim_res |> 
+  dplyr::group_by(error_sett, design) |> 
+  dplyr::summarize(eff = 1 / var(beta, na.rm = TRUE))
+
+srs = sim_res |> 
+  dplyr::filter(design == "SRS") |> 
+  dplyr::select(error_sett, eff) |> 
+  dplyr::rename(eff_srs = eff)
+
+sim_res = sim_res |> 
+  dplyr::filter(design != "SRS") |> 
+  dplyr::left_join(srs) |> 
+  dplyr::mutate(re = eff / eff_srs)
+
+# Plot results 
+sim_res |> 
+  ggplot(aes(x = error_sett, y = re, color = design, group = design)) + 
+  geom_point(size = 2) + 
+  geom_line(linewidth = 1.2) + 
+  scale_color_manual(values = slide_colors, 
+                    name = "Design:") + 
+  geom_hline(yintercept = 1, 
+             linetype = 2, 
+             color = "black") + 
+  xlab("Error Rates in Allostatic Load Index Components") + 
+  ylab("Relative Efficiency to SRS") + 
+  theme_minimal(base_size = 18) + 
+  theme(legend.position = "top", 
+        axis.title = element_text(face = "bold"),
+        legend.title = element_text(face = "bold")) 
+ggsave(filename = "~/Dropbox (Wake Forest University)/5 - CONFERENCES/2 - Slides/2024/ALI-EHR-ENAR-Mar2024/vary_audit_designs_tpr_fpr_line.png", 
        device = "png", width = 12, height = 7, units = "in")
