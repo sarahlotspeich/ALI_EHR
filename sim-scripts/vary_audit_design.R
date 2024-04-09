@@ -167,6 +167,8 @@ sim_data_fit = function(id, tpr, fpr) {
                                            false = Xstar2))
     
     ## Fit SMLE
+    fit = sleev::log
+    
     suppressMessages(fit <- logreg2ph(
       Y_unval = NULL,
       Y_val = "Y",

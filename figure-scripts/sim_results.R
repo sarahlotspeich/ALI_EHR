@@ -188,6 +188,24 @@ sim_res = do.call(what = dplyr::bind_rows,
                                           "50th Percentile",
                                           "75th Percentile",
                                           "90th Percentile")))
+
+sim_res |>
+  ggplot(aes(x = error_sett, y = beta1, fill = strat)) +
+  geom_boxplot() +
+  scale_fill_manual(values = slide_colors,
+                     name = "Design:") +
+  geom_hline(yintercept = beta1,
+             linetype = 2,
+             color = "black") +
+  xlab("Error Rates in Allostatic Load Index Components") +
+  ylab("Relative Efficiency to SRS") +
+  theme_minimal(base_size = 18) +
+  theme(legend.position = "top",
+        axis.title = element_text(face = "bold"),
+        legend.title = element_text(face = "bold"))
+ggsave(filename = "~/Dropbox (Wake Forest University)/5 - CONFERENCES/2 - Slides/2024/ALI-EHR-ENAR-Mar2024/vary_stratXstar_tpr_fpr_line.png",
+       device = "png", width = 12, height = 7, units = "in")
+
 sim_res = sim_res |>
   dplyr::group_by(error_sett, strat) |>
   dplyr::summarize(eff = 1 / var(beta1, na.rm = TRUE))
@@ -208,6 +226,5 @@ sim_res |>
   theme(legend.position = "top",
         axis.title = element_text(face = "bold"),
         legend.title = element_text(face = "bold"))
-ggsave(filename = "~/Dropbox (Wake Forest University)/5 - CONFERENCES/2 - Slides/2024/ALI-EHR-ENAR-Mar2024/vary_audit_designs_tpr_fpr_line.png",
+ggsave(filename = "~/Dropbox (Wake Forest University)/5 - CONFERENCES/2 - Slides/2024/ALI-EHR-ENAR-Mar2024/vary_stratXstar_tpr_fpr_line.png",
        device = "png", width = 12, height = 7, units = "in")
-
