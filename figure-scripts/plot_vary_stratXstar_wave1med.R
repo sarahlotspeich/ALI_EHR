@@ -115,16 +115,12 @@ ggsave(filename = "~/Documents/ALI_EHR//vary_stratXstar_wave1med_tpr_fpr_line.pn
        device = "png", width = 12, height = 7, units = "in")
 
 # Plot line graph of relative efficiency (to SRS)
-
 sim_res |>
   ggplot(aes(x = error_sett, y = eff, color = strat, group = strat)) +
   geom_point(size = 2) +
   geom_line(linewidth = 1.2) +
   scale_color_manual(values = slide_colors,
                      name = "Design:") +
-  # geom_hline(yintercept = 1,
-  #            linetype = 2,
-  #            color = "black") +
   xlab("Error Rates in Allostatic Load Index Components") +
   ylab("Efficiency") +
   theme_minimal(base_size = 18) +
