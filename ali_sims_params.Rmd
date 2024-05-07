@@ -6,20 +6,52 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+library(tidyr)
+library(dplyr)
 ```
 
 ```{r}
 ## Read in summary data (one row per patient)
-summ_data = read.csv("~/Documents/ali-data/summary_data.csv") |> 
-  ### Create indicator of >= 1 healthcare encounter (ED visit or hospital admission)
-  dplyr::mutate(ANY_ENCOUNTERS = as.numeric(NUM_ENCOUNTERS > 0)) 
+summ_data = read.csv("~/Documents/Allostatic_load_audits/summary_data.csv") |> 
+  dplyr::mutate(ANY_ENCOUNTERS = as.numeric(NUM_ENCOUNTERS > 0)) ### Create indicator of >= 1 healthcare encounter (ED visit or hospital admission)
+
+## Subset to only the variables needed for the analysis 
+summ_data = summ_data |> 
+  select(PAT_MRN_ID, ANY_ENCOUNTERS, AGE_AT_ENCOUNTER, SEX, 
+         CREAT_C, ALB, BMI, BP_SYSTOLIC, BP_DIASTOLIC, A1C, CHOL, TRIG, CRP, HCST)
+
+## Create a long version with one row per variable per patient
+summ_data_long = summ_data |> 
+  gather(key = "COMP", 
+         value = "VAL", 
+         -c(1:4))
+
+## Merge in the stratification values
+strat_vals = read.csv("~/Documents/Allostatic_load_audits/Audit_Protocol/strat_vals.csv")
+summ_data_long = summ_data_long |> 
+  left_join(strat_vals) |> 
+  mutate(POINT = case_when(
+    INEQ == ">" ~ as.numeric(VAL > STRAT),
+    INEQ == ">=" ~ as.numeric(VAL >= STRAT),
+    INEQ == "<" ~ as.numeric(VAL < STRAT)
+  ))
+
+## Aggregate the stratified components by patient 
+summ_data = summ_data_long |> 
+  group_by(PAT_MRN_ID, ANY_ENCOUNTERS, AGE_AT_ENCOUNTER, SEX) |> 
+  summarize(ALI_STAR_NUM = sum(POINT, na.rm = TRUE), ### Number of components equal to 1
+            ALI_STAR_DENOM = sum(!is.na(POINT)) ### Number of non-missing components
+            ) |> 
+  mutate(ALI_STAR = ALI_STAR_NUM / ALI_STAR_DENOM,
+         ALI_STAR_RESCALED = ALI_STAR / 0.1 ### Create ALI_STAR_RESCALED = ALI_STAR / 0.1
+         ) 
 ```
 
 ## Distribution of age at encounter
 
 ```{r}
-## Model age at first encounter with a Poisson distribution
+## Model age at first encounter (in 1-year increments) with a Poisson distribution
 glm(formula = AGE_AT_ENCOUNTER ~ 1, 
     family = poisson, 
     data = summ_data) |> 
@@ -27,56 +59,164 @@ glm(formula = AGE_AT_ENCOUNTER ~ 1,
   exp()
 ```
 
-## Calculate error-prone ALI from EHR
-
-```{r}
-## Calculate components of the error-prone version of ALI from EHR 
+```{r, warning = FALSE}
+### Rescale age at first encounter to be in 5-year increments
 summ_data = summ_data |> 
-  dplyr::mutate(CREAT_C_POINT = as.numeric(CREAT_C < 110 & SEX == "Male") +
-                  as.numeric(CREAT_C < 100 & SEX == "Female"), 
-                ALB_POINT = as.numeric(ALB >= 3.5), 
-                BMI_POINT = as.numeric(BMI > 30),
-                BP_SYSTOLIC_POINT = as.numeric(BP_SYSTOLIC > 140), 
-                BP_DIASTOLIC_POINT = as.numeric(BP_DIASTOLIC > 90), 
-                A1C_POINT = as.numeric(A1C >= 6.5), 
-                CHOL_POINT = as.numeric(CHOL >= 200), 
-                TRIG_POINT = as.numeric(TRIG >= 150), 
-                CRP_POINT = as.numeric(CRP >= 10), 
-                HCST_POINT = as.numeric(HCST > 50),
-                U_ALBUMIN_CREAT_RATIO = ALB_U / CREAT_U, 
-                U_ALBUMIN_CREAT_RATIO_POINT = as.numeric(U_ALBUMIN_CREAT_RATIO < 30)
-  )
-## Define components of the Seemen et al. ALI
-seemen_components = c("CREAT_C_POINT", "ALB_POINT", "BMI_POINT", "BP_SYSTOLIC_POINT",
-                      "BP_DIASTOLIC_POINT", "A1C_POINT", "CHOL_POINT", "TRIG_POINT", 
-                      "CRP_POINT", "HCST_POINT")
-### Number of non-missing components
-ALI_DENOM = rowSums(!is.na(summ_data[, seemen_components])) 
-### Number of components equal to 1
-ALI_NUM = rowSums(summ_data[, seemen_components], na.rm = TRUE) 
-summ_data$ALI_Seeman = ALI_NUM / ALI_DENOM
+  ### Create AGE_AT_ENCOUNTER5 = AGE_AT_ENCOUNTER / 5
+  dplyr::mutate(AGE_AT_ENCOUNTER5 = AGE_AT_ENCOUNTER / 5) 
+
+## Model age at first encounter (in 5-year increments) with a Poisson distribution
+glm(formula = AGE_AT_ENCOUNTER5 ~ 1, 
+    family = poisson, 
+    data = summ_data) |> 
+  coefficients() |> 
+  exp()
 ```
 
-## Naive model of ALI and healthcare utilization
+```{r, warning = FALSE}
+### Rescale age at first encounter to be in 10-year increments
+summ_data = summ_data |> 
+  ### Create AGE_AT_ENCOUNTER10 = AGE_AT_ENCOUNTER / 10
+  dplyr::mutate(AGE_AT_ENCOUNTER10 = AGE_AT_ENCOUNTER / 10) 
+
+## Model age at first encounter (in 10-year increments) with a Poisson distribution
+glm(formula = AGE_AT_ENCOUNTER10 ~ 1, 
+    family = poisson, 
+    data = summ_data) |> 
+  coefficients() |> 
+  exp()
+```
+
+## Naive model of ALI* and healthcare utilization
 
 ```{r}
-## Naive model parameters
-naive_mod = glm(formula = ANY_ENCOUNTERS ~ ALI_Seeman + AGE_AT_ENCOUNTER, 
+## Naive model parameters (age in 10-year increments)
+naive_mod = glm(formula = ANY_ENCOUNTERS ~ ALI_STAR + AGE_AT_ENCOUNTER10, 
                 family = "binomial", 
                 data = summ_data)
 summary(naive_mod)
 ```
 
-## Naive proportions "yes" per ALI component
+```{r}
+## Naive model parameters (age in 10-year increments)
+naive_mod = glm(formula = ANY_ENCOUNTERS ~ ALI_STAR_RESCALED + AGE_AT_ENCOUNTER10, 
+                family = "binomial", 
+                data = summ_data)
+summary(naive_mod)
+```
+
+\clearpage
+
+## Naive proportions "yes" and missing data per ALI component
 
 ```{r}
 ## probability of stressor = YES
-colMeans(summ_data[, seemen_components], na.rm = TRUE) 
+summ_data_long |> 
+  group_by(COMP) |> 
+  summarize(PROP_YES = mean(POINT, na.rm = TRUE), 
+            PROP_MISS = mean(is.na(POINT)))
 ```
 
-## Percent missing data per ALI component
+\clearpage
+
+## SMLE model of ALI and healthcare utilization (pilot + wave 1)
 
 ```{r}
-## probability of stressor = NA
-colMeans(is.na(summ_data[, seemen_components]), na.rm = TRUE) 
+## Read in long audit data (one row per patient per audited variable)
+audit_dat = read.csv("~/Documents/ali-data/summary_data_audit1.csv")
+
+## Create a long version with one row per variable per patient
+audit_dat_long = audit_dat |> 
+  gather(key = "COMP", 
+         value = "VAL", 
+         -c(1))
+
+## Merge in the stratification values
+strat_vals = strat_vals |> 
+  filter(SEX == "Female") |> 
+  select(-SEX)
+audit_dat_long = audit_dat_long |> 
+  left_join(strat_vals) |> 
+  mutate(POINT = case_when(
+    INEQ == ">" ~ as.numeric(VAL > STRAT),
+    INEQ == ">=" ~ as.numeric(VAL >= STRAT),
+    INEQ == "<" ~ as.numeric(VAL < STRAT)
+  ))
+
+## Aggregate the stratified components by patient 
+audit_dat = audit_dat_long |> 
+  group_by(PAT_MRN_ID) |> 
+  summarize(ALI_NUM = sum(POINT, na.rm = TRUE), ### Number of components equal to 1
+            ALI_DENOM = sum(!is.na(POINT)) ### Number of non-missing components
+            ) |> 
+  mutate(ALI = ALI_NUM / ALI_DENOM, 
+         ALI_RESCALED = ALI / 0.1 ### Create ALI_RESCALED = ALI / 0.1
+  )
+
+## Merge with summ_data
+summ_data = summ_data |> 
+  left_join(audit_dat)
+```
+
+```{r}
+# Estimate parameters using Phase IIa audits + the rest of Phase I ---------
+## Setup B-splines
+B = splines::bs(x = summ_data$ALI_STAR, 
+                df = 8, 
+                Boundary.knots = range(summ_data$ALI_STAR), 
+                intercept = TRUE, 
+                degree = 3)
+colnames(B) = paste0("bs", seq(1, 8))
+summ_data = summ_data |> 
+  bind_cols(B) |> 
+  data.frame()
+      
+### Fit SMLE -------------------------------------------------------------
+library(sleev)
+suppressMessages(fit <- logistic2ph(
+  Y_unval = NULL,
+  Y = "ANY_ENCOUNTERS",
+  X_unval = "ALI_STAR",
+  X = "ALI",
+  Z = "AGE_AT_ENCOUNTER10",
+  Bspline = colnames(B),
+  data = summ_data,
+  hn_scale = 1,
+  noSE = FALSE,
+  TOL = 1e-04,
+  MAX_ITER = 1000
+))
+fit$coefficients
+```
+
+```{r}
+# Estimate parameters using Phase IIa audits + the rest of Phase I ---------
+## Setup B-splines
+summ_data = summ_data[, -grep(pattern = "bs", x = colnames(summ_data))]
+B = splines::bs(x = summ_data$ALI_STAR_RESCALED, 
+                df = 8, 
+                Boundary.knots = range(summ_data$ALI_STAR_RESCALED), 
+                intercept = TRUE, 
+                degree = 3)
+colnames(B) = paste0("bs", seq(1, 8))
+summ_data = summ_data |> 
+  bind_cols(B)
+
+summ_data = data.frame(summ_data)
+
+### Fit SMLE -------------------------------------------------------------
+suppressMessages(fit <- logistic2ph(
+  Y_unval = NULL,
+  Y = "ANY_ENCOUNTERS",
+  X_unval = "ALI_STAR_RESCALED",
+  X = "ALI_RESCALED",
+  Z = "AGE_AT_ENCOUNTER10",
+  Bspline = colnames(B),
+  data = summ_data,
+  hn_scale = 1 / 2, #### since the parameter estimates are smaller, need smaller perturbation for SEs
+  noSE = FALSE,
+  TOL = 1e-04,
+  MAX_ITER = 1000
+))
+fit$coefficients 
 ```
