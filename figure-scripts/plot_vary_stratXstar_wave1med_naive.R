@@ -18,10 +18,11 @@ true_beta1 = 0.95 ## coefficient on X in model of Y|X,Z
 true_beta2 = 0.01 ## coefficient on Z in model of Y|X,Z
 
 # Read in data
-sim_urls = c(paste0("https://raw.githubusercontent.com/sarahlotspeich/ALI_EHR/main/sim-data/vary_stratXstar_wave1med/vary_stratXstar_tpr50_fpr50_seed", 11422:11431, ".csv"),
-             paste0("https://raw.githubusercontent.com/sarahlotspeich/ALI_EHR/main/sim-data/vary_stratXstar_wave1med/vary_stratXstar_tpr80_fpr20_seed", 11422:11431, ".csv"),
-             paste0("https://raw.githubusercontent.com/sarahlotspeich/ALI_EHR/main/sim-data/vary_stratXstar_wave1med/vary_stratXstar_tpr95_fpr05_seed", 11422:11431, ".csv"),
-             paste0("https://raw.githubusercontent.com/sarahlotspeich/ALI_EHR/main/sim-data/vary_stratXstar_wave1med/vary_stratXstar_tpr99_fpr01_seed", 11422:11431, ".csv")
+url_stem = "https://raw.githubusercontent.com/sarahlotspeich/ALI_EHR/main/sim-data/vary_stratXstar_wave1med/naive/"
+sim_urls = c(paste0(url_stem, "vary_stratXstar_tpr50_fpr50_seed", 11422:11431, ".csv"),
+             paste0(url_stem, "vary_stratXstar_tpr80_fpr20_seed", 11422:11431, ".csv"),
+             paste0(url_stem, "vary_stratXstar_tpr95_fpr05_seed", 11422:11431, ".csv"),
+             paste0(url_stem, "vary_stratXstar_tpr99_fpr01_seed", 11422:11431, ".csv")
              )
 sim_res = do.call(what = bind_rows,
                   args = lapply(X = sim_urls,
@@ -47,6 +48,7 @@ sim_res |>
   ungroup() |> 
   filter(conv_msg != "Converged") |> 
   arrange(desc(num))
+## <= 45/1000 either singular information (couldn't find optimal design) or B-spline error
 
 # Plot boxplot of coefficient estimates
 sim_res |>
@@ -63,7 +65,7 @@ sim_res |>
   theme(legend.position = "top",
         axis.title = element_text(face = "bold"),
         legend.title = element_text(face = "bold"))
-ggsave(filename = "~/Dropbox (Wake Forest University)/5 - CONFERENCES/2 - Slides/2024/ALI-EHR-ENAR-Mar2024/vary_stratXstar_wave1med_tpr_fpr_line.png",
+ggsave(filename = "~/Documents/ALI_EHR/figures/naive_vary_stratXstar_wave1med_tpr_fpr_boxplot.png",
        device = "png", width = 12, height = 7, units = "in")
 
 # Plot average stratum sizes per design
@@ -92,7 +94,7 @@ avg_des |>
         strip.background = element_rect(fill = "#C3CFFA", color = "black", linewidth = 1.2),
         strip.text = element_text(color = "black")) + 
   ylab("Stratum")
-ggsave(filename = "~/Documents/ALI_EHR/figures/vary_stratXstar_wave1med_designs_heatmap.png",
+ggsave(filename = "~/Documents/ALI_EHR/figures/naive_vary_stratXstar_wave1med_designs_heatmap.png",
        device = "png", width = 12, height = 7, units = "in")
 
 # Plot line graph of efficiency
@@ -111,21 +113,5 @@ sim_res |>
   theme(legend.position = "top",
         axis.title = element_text(face = "bold"),
         legend.title = element_text(face = "bold"))
-ggsave(filename = "~/Documents/ALI_EHR//vary_stratXstar_wave1med_tpr_fpr_line.png",
-       device = "png", width = 12, height = 7, units = "in")
-
-# Plot line graph of relative efficiency (to SRS)
-sim_res |>
-  ggplot(aes(x = error_sett, y = eff, color = strat, group = strat)) +
-  geom_point(size = 2) +
-  geom_line(linewidth = 1.2) +
-  scale_color_manual(values = slide_colors,
-                     name = "Design:") +
-  xlab("Error Rates in Allostatic Load Index Components") +
-  ylab("Efficiency") +
-  theme_minimal(base_size = 18) +
-  theme(legend.position = "top",
-        axis.title = element_text(face = "bold"),
-        legend.title = element_text(face = "bold"))
-ggsave(filename = "~/Dropbox (Wake Forest University)/5 - CONFERENCES/2 - Slides/2024/ALI-EHR-ENAR-Mar2024/vary_stratXstar_wave1med_tpr_fpr_line.png",
+ggsave(filename = "~/Documents/ALI_EHR//naive_vary_stratXstar_wave1med_tpr_fpr_line.png",
        device = "png", width = 12, height = 7, units = "in")
