@@ -113,5 +113,5 @@ sim_res |>
   theme(legend.position = "top",
         axis.title = element_text(face = "bold"),
         legend.title = element_text(face = "bold"))
-ggsave(filename = "~/Documents/ALI_EHR//naive_vary_stratXstar_wave1med_tpr_fpr_line.png",
+ggsave(filename = "~/Documents/ALI_EHR/figures/naive_vary_stratXstar_wave1med_tpr_fpr_line.png",
        device = "png", width = 12, height = 7, units = "in")
