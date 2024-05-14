@@ -52,7 +52,9 @@ sim_res |>
 
 # Plot boxplot of coefficient estimates
 sim_res |>
-  ggplot(aes(x = error_sett, y = beta1, fill = strat)) +
+  ggplot(aes(x = error_sett, 
+             y = beta1, 
+             fill = strat)) +
   geom_boxplot() +
   scale_fill_manual(values = slide_colors,
                     name = "Stratified X* At:") +
@@ -113,5 +115,31 @@ sim_res |>
   theme(legend.position = "top",
         axis.title = element_text(face = "bold"),
         legend.title = element_text(face = "bold"))
-ggsave(filename = "~/Documents/ALI_EHR/figures/smle_vary_stratXstar_wave1med_tpr_fpr_line.png",
+ggsave(filename = "~/Documents/ALI_EHR/figures/smle_vary_stratXstar_wave1med_tpr_fpr_line_eff.png",
+       device = "png", width = 12, height = 7, units = "in")
+
+# Plot line graph of efficiency
+srs_eff = read.csv("https://raw.githubusercontent.com/sarahlotspeich/ALI_EHR/main/sim-data/srs_eff.csv")
+sim_res = sim_res |>
+  dplyr::left_join(srs_eff)
+sim_res |>
+  dplyr::mutate(re = eff / srs_eff, 
+                error_sett = factor(x = error_sett,
+                                    levels = c("TPR = 99%, FPR = 1%",
+                                               "TPR = 95%, FPR = 5%",
+                                               "TPR = 80%, FPR = 20%",
+                                               "TPR = 50%, FPR = 50%"))) |> 
+  ggplot(aes(x = error_sett, y = re, color = strat, group = strat)) +
+  geom_point(size = 2) +
+  geom_line(linewidth = 1.2) +
+  geom_hline(yintercept = 1, linetype = 2) + 
+  scale_color_manual(values = slide_colors,
+                     name = "Design:") +
+  xlab("Error Rates in Allostatic Load Index Components") +
+  ylab("Relative Efficiency to SRS") +
+  theme_minimal(base_size = 18) +
+  theme(legend.position = "top",
+        axis.title = element_text(face = "bold"),
+        legend.title = element_text(face = "bold"))
+ggsave(filename = "~/Documents/ALI_EHR/figures/smle_vary_stratXstar_wave1med_tpr_fpr_line_re.png",
        device = "png", width = 12, height = 7, units = "in")
