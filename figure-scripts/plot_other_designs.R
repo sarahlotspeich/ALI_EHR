@@ -18,7 +18,7 @@ beta1 = 1.88 ## coefficient on X in model of Y|X,Z
 beta2 = 0.10 ## coefficient on Z in model of Y|X,Z
 
 ## Read in data
-url_stem = "https://raw.githubusercontent.com/sarahlotspeich/ALI_EHR/main/sim-data/vary_stratXstar_wave1med/smle_other/"
+url_stem = "https://raw.githubusercontent.com/sarahlotspeich/ALI_EHR/main/sim-data/smle_other_designs/"
 sim_urls = c(paste0(url_stem, "tpr50_fpr50_seed", 11422:11431, ".csv"),
              paste0(url_stem, "tpr80_fpr20_seed", 11422:11431, ".csv"),
              paste0(url_stem, "tpr95_fpr05_seed", 11422:11431, ".csv"),
