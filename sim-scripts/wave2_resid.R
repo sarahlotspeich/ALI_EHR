@@ -29,7 +29,7 @@ sim_seed = 11422 #+ as.integer(args)
 reps = 1000 ## Number of replications
 
 # Function to simulate data
-sim_data = function(tpr, fpr) {
+sim_data = function(audit_recovery = 1, tpr, fpr) {
   ## Simulate continuous error-free covariate: age at first encounter 
   ### from Poisson(lambda_age) 
   Z = rpois(n = N, 
@@ -63,7 +63,7 @@ sim_data = function(tpr, fpr) {
                      nrow = N, 
                      ncol = 10, 
                      byrow = TRUE)
-  Xstar1 = rowMeans(Sstar_mat, 
+  Xstar = rowMeans(Sstar_mat, 
                     na.rm = TRUE)
   
   ## Simulate outcome: healthcare utilization
@@ -82,11 +82,11 @@ sim_data = function(tpr, fpr) {
                  nrow = N, 
                  ncol = 10, 
                  byrow = TRUE)
-  Xstar2 = rowMeans(S_mat, 
+  Xval = rowMeans(S_mat, 
                     na.rm = TRUE) ## ALI based on recovered components
   
   ## Create dataset
-  dat = data.frame(id = 1:N, X, Xstar1, Xstar2, Y, Z)
+  dat = data.frame(id = 1:N, X, Xstar, Xval, Y, Z)
   
   # Return dataset
   return(dat)
@@ -96,23 +96,24 @@ sim_data = function(tpr, fpr) {
 sim_data_fit = function(id, tpr, fpr) {
   results = data.frame(sim = id, 
                        resid_beta0 = NA, resid_beta1 = NA, resid_beta2 = NA, 
-                       resid_conv_msg = NA)
+                       resid_conv_msg = NA, resid_data_resampled = NA)
   
   # Simulate data 
   temp = sim_data(tpr = tpr, 
                   fpr = fpr) 
   
   # Setup B-splines
-  B = splines::bs(x = temp$Xstar1, 
+  B = splines::bs(x = temp$Xstar, 
                   df = nsieve, 
-                  Boundary.knots = range(temp$Xstar1), 
+                  Boundary.knots = range(temp$Xstar), 
                   intercept = TRUE)
   colnames(B) = paste0("bs", seq(1, nsieve))
   temp = cbind(temp, B)
   
   # Draw a BCC* of n / 2 in the first wave 
   ## Stratify X* at the median
-  temp$Xstar_strat = as.numeric(temp$Xstar1 <= median(temp$Xstar1))
+  temp$Xstar_strat = as.numeric(temp$Xstar <= median(temp$Xstar))
+  
   ## Create Wave 1 validation indicator
   temp$V1 = sample_bcc(dat = temp,
                        phI = nrow(temp), 
@@ -121,7 +122,7 @@ sim_data_fit = function(id, tpr, fpr) {
                        wave1_Validated = NULL)
 
   ## Create Wave 2 validation indicator 
-  temp$V2 = sample_resid(formula = Y ~ Xstar1 + Z, 
+  temp$V2 = sample_resid(formula = Y ~ Xstar + Z, 
                          family = "binomial", 
                          dat = temp, 
                          phI = nrow(temp), 
@@ -131,17 +132,69 @@ sim_data_fit = function(id, tpr, fpr) {
   ## Create any wave validation indicator
   temp$V = pmax(temp$V1, temp$V2)
   
+  ## Check for empty sieves in validated data
+  sieve_sums = temp %>%
+    dplyr::filter(V == 1) %>% 
+    dplyr::select(dplyr::starts_with("bs")) %>%
+    colSums()
+  
+  ## If any sieves are empty, re-sample waves 1 and 2
+  while(any(sieve_sums == 0)) {
+    ## Save logical indicator that validation study was re-sampled
+    results[1, "resid_data_resampled"] = TRUE
+    
+    # Simulate data 
+    temp = sim_data(tpr = tpr, 
+                    fpr = fpr) 
+    
+    # Setup B-splines
+    B = splines::bs(x = temp$Xstar, 
+                    df = nsieve, 
+                    Boundary.knots = range(temp$Xstar), 
+                    intercept = TRUE)
+    colnames(B) = paste0("bs", seq(1, nsieve))
+    temp = cbind(temp, B)
+    
+    # Draw a BCC* of n / 2 in the first wave 
+    ## Stratify X* at the median
+    temp$Xstar_strat = as.numeric(temp$Xstar <= median(temp$Xstar))
+    
+    ## Create Wave 1 validation indicator
+    temp$V1 = sample_bcc(dat = temp,
+                         phI = nrow(temp), 
+                         phII = (n / 2), 
+                         sample_on = c("Y", "Xstar_strat"), 
+                         wave1_Validated = NULL)
+    
+    ## Create Wave 2 validation indicator 
+    temp$V2 = sample_resid(formula = Y ~ Xstar + Z, 
+                           family = "binomial", 
+                           dat = temp, 
+                           phI = nrow(temp), 
+                           phII = n / 2, 
+                           wave1_Validated = temp$V1 == 1)
+    
+    ## Create any wave validation indicator
+    temp$V = pmax(temp$V1, temp$V2)
+    
+    ## Check for empty sieves in validated data
+    sieve_sums = temp %>%
+      dplyr::filter(V == 1) %>% 
+      dplyr::select(dplyr::starts_with("bs")) %>%
+      colSums()
+  }
+  
   ## Create Xmiss to be NA if V = 0
   temp = temp %>% 
     dplyr::mutate(Xmiss = dplyr::if_else(condition = V == 0, 
                                          true = NA, 
-                                         false = Xstar2))
+                                         false = Xval))
   
   ## Fit SMLE
   fit = logistic2ph(
     Y_unval = NULL,
     Y = "Y",
-    X_unval = "Xstar1",
+    X_unval = "Xstar",
     X = "Xmiss",
     Z = "Z",
     Bspline = colnames(B),

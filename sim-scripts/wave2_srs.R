@@ -7,10 +7,10 @@ library(auditDesignR, lib.loc = "/home/lotspes/packages/") ## for audit sampling
 
 # Set parameters that won't be varied in the loop
 ## These values will be set as the defaults in the sim_data() function for convenience
-lambda_age = 45.66 / 10 ## mean of Poisson for Z
+lambda_age = 45.66 ## mean of Poisson for Z
 beta0 = -1.93 ## intercept in model of Y|X,Z
 beta1 = 1.88 ## coefficient on X in model of Y|X,Z
-beta2 = 0.10 ## coefficient on Z in model of Y|X,Z
+beta2 = 0.1 ## coefficient on Z in model of Y|X,Z
 pS = c(0.2500000, 0.9870130, 0.4549098, 0.1450000, 0.0580000, 
        0.2490119, 0.3138501, 0.3316391, 0.3111111, 0.0000000) ## probability of stressor = YES
 pM = c(0.996, 0.153, 0.002, 0.000, 0.000, 
@@ -29,7 +29,7 @@ sim_seed = 11422 #+ as.integer(args)
 reps = 1000 ## Number of replications
 
 # Function to simulate data
-sim_data = function(tpr, fpr) {
+sim_data = function(audit_recovery = 1, tpr, fpr) {
   ## Simulate continuous error-free covariate: age at first encounter 
   ### from Poisson(lambda_age) 
   Z = rpois(n = N, 
@@ -63,7 +63,7 @@ sim_data = function(tpr, fpr) {
                      nrow = N, 
                      ncol = 10, 
                      byrow = TRUE)
-  Xstar1 = rowMeans(Sstar_mat, 
+  Xstar = rowMeans(Sstar_mat, 
                     na.rm = TRUE)
   
   ## Simulate outcome: healthcare utilization
@@ -82,11 +82,11 @@ sim_data = function(tpr, fpr) {
                  nrow = N, 
                  ncol = 10, 
                  byrow = TRUE)
-  Xstar2 = rowMeans(S_mat, 
+  Xval = rowMeans(S_mat, 
                     na.rm = TRUE) ## ALI based on recovered components
   
   ## Create dataset
-  dat = data.frame(id = 1:N, X, Xstar1, Xstar2, Y, Z)
+  dat = data.frame(id = 1:N, X, Xstar, Xval, Y, Z)
   
   # Return dataset
   return(dat)
@@ -96,23 +96,24 @@ sim_data = function(tpr, fpr) {
 sim_data_fit = function(id, tpr, fpr) {
   results = data.frame(sim = id, 
                        srs_beta0 = NA, srs_beta1 = NA, srs_beta2 = NA, 
-                       srs_conv_msg = NA)
+                       srs_conv_msg = NA, srs_data_resampled = FALSE)
   
   # Simulate data 
   temp = sim_data(tpr = tpr, 
                   fpr = fpr) 
   
   # Setup B-splines
-  B = splines::bs(x = temp$Xstar1, 
+  B = splines::bs(x = temp$Xstar, 
                   df = nsieve, 
-                  Boundary.knots = range(temp$Xstar1), 
+                  Boundary.knots = range(temp$Xstar), 
                   intercept = TRUE)
   colnames(B) = paste0("bs", seq(1, nsieve))
   temp = cbind(temp, B)
   
   # Draw a BCC* of n / 2 in the first wave 
   ## Stratify X* at the median
-  temp$Xstar_strat = as.numeric(temp$Xstar1 <= median(temp$Xstar1))
+  temp$Xstar_strat = as.numeric(temp$Xstar <= median(temp$Xstar))
+  
   ## Create Wave 1 validation indicator
   temp$V1 = sample_bcc(dat = temp,
                        phI = nrow(temp), 
@@ -121,25 +122,73 @@ sim_data_fit = function(id, tpr, fpr) {
                        wave1_Validated = NULL)
 
   ## Create Wave 2 validation indicator 
-  temp$V2 = sample_srs(dat = temp,
-                       phI = nrow(temp), 
+  temp$V2 = sample_srs(phI = nrow(temp), 
                        phII = (n / 2), 
                        wave1_Validated = temp$V1 == 1)
   
   ## Create any wave validation indicator
   temp$V = pmax(temp$V1, temp$V2)
   
+  ## Check for empty sieves in validated data
+  sieve_sums = temp %>%
+    dplyr::filter(V == 1) %>% 
+    dplyr::select(dplyr::starts_with("bs")) %>%
+    colSums()
+  
+  ## If any sieves are empty, re-sample waves 1 and 2
+  while(any(sieve_sums == 0)) {
+    ## Save logical indicator that validation study was re-sampled
+    results[1, "srs_data_resampled"] = TRUE
+    
+    # Simulate data 
+    temp = sim_data(tpr = tpr, 
+                    fpr = fpr) 
+    
+    # Setup B-splines
+    B = splines::bs(x = temp$Xstar, 
+                    df = nsieve, 
+                    Boundary.knots = range(temp$Xstar), 
+                    intercept = TRUE)
+    colnames(B) = paste0("bs", seq(1, nsieve))
+    temp = cbind(temp, B)
+    
+    # Draw a BCC* of n / 2 in the first wave 
+    ## Stratify X* at the median
+    temp$Xstar_strat = as.numeric(temp$Xstar <= median(temp$Xstar))
+    
+    ## Create Wave 1 validation indicator
+    temp$V1 = sample_bcc(dat = temp,
+                         phI = nrow(temp), 
+                         phII = (n / 2), 
+                         sample_on = c("Y", "Xstar_strat"), 
+                         wave1_Validated = NULL)
+    
+    ## Create Wave 2 validation indicator 
+    temp$V2 = sample_srs(phI = nrow(temp), 
+                         phII = (n / 2), 
+                         wave1_Validated = temp$V1 == 1)
+    
+    ## Create any wave validation indicator
+    temp$V = pmax(temp$V1, temp$V2)
+    
+    ## Check for empty sieves in validated data
+    sieve_sums = temp %>%
+      dplyr::filter(V == 1) %>% 
+      dplyr::select(dplyr::starts_with("bs")) %>%
+      colSums()
+  }
+  
   ## Create Xmiss to be NA if V = 0
   temp = temp %>% 
     dplyr::mutate(Xmiss = dplyr::if_else(condition = V == 0, 
                                          true = NA, 
-                                         false = Xstar2))
+                                         false = Xval))
   
   ## Fit SMLE
   fit = logistic2ph(
     Y_unval = NULL,
     Y = "Y",
-    X_unval = "Xstar1",
+    X_unval = "Xstar",
     X = "Xmiss",
     Z = "Z",
     Bspline = colnames(B),
