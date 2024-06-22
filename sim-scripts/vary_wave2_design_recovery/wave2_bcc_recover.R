@@ -28,7 +28,7 @@ sim_seed = 11422 #+ as.integer(args)
 reps = 1000 ## Number of replications
 
 # Function to simulate data
-sim_data = function(audit_recovery = 1, tpr, fpr) {
+sim_data = function(audit_recovery, tpr, fpr) {
   ## Simulate continuous error-free covariate: age at first encounter 
   ### from Poisson(lambda_age) 
   Z = rpois(n = N, 
@@ -99,7 +99,8 @@ sim_data_fit = function(id, audit_recovery, tpr = 0.95, fpr = 0.05) {
   
   # Simulate data 
   temp = sim_data(tpr = tpr, 
-                  fpr = fpr) 
+                  fpr = fpr, 
+                  audit_recovery = audit_recovery) 
   
   # Setup B-splines
   B = splines::bs(x = temp$Xstar, 
@@ -143,7 +144,8 @@ sim_data_fit = function(id, audit_recovery, tpr = 0.95, fpr = 0.05) {
     
     # Simulate data 
     temp = sim_data(tpr = tpr, 
-                    fpr = fpr) 
+                    fpr = fpr, 
+                    audit_recovery = audit_recovery) 
     
     # Setup B-splines
     B = splines::bs(x = temp$Xstar, 

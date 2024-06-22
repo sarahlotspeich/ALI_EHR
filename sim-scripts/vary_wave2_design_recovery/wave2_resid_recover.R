@@ -19,7 +19,6 @@ N = 1000 ## total sample size (Phase I)
 pV = 0.1 ## proportion of patients to be validated (Phase II)
 n = ceiling(pV * N) ## number of patients to be validated (Phase II)
 nsieve = 16 ## number of B-spline sieves
-audit_recovery = 1 ## proportion of missing data recovered through the audit
 
 # Random seed to be used for each simulation setting
 args = commandArgs(TRUE)
@@ -29,7 +28,7 @@ sim_seed = 11422 #+ as.integer(args)
 reps = 1000 ## Number of replications
 
 # Function to simulate data
-sim_data = function(audit_recovery = 1, tpr, fpr) {
+sim_data = function(audit_recovery, tpr, fpr) {
   ## Simulate continuous error-free covariate: age at first encounter 
   ### from Poisson(lambda_age) 
   Z = rpois(n = N, 
@@ -96,11 +95,12 @@ sim_data = function(audit_recovery = 1, tpr, fpr) {
 sim_data_fit = function(id, audit_recovery, tpr = 0.95, fpr = 0.05) {
   results = data.frame(sim = id, 
                        resid_beta0 = NA, resid_beta1 = NA, resid_beta2 = NA, 
-                       resid_conv_msg = NA, resid_data_resampled = NA)
+                       resid_conv_msg = NA, resid_data_resampled = FALSE)
   
   # Simulate data 
   temp = sim_data(tpr = tpr, 
-                  fpr = fpr) 
+                  fpr = fpr,
+                  audit_recovery = audit_recovery) 
   
   # Setup B-splines
   B = splines::bs(x = temp$Xstar, 
@@ -145,7 +145,8 @@ sim_data_fit = function(id, audit_recovery, tpr = 0.95, fpr = 0.05) {
     
     # Simulate data 
     temp = sim_data(tpr = tpr, 
-                    fpr = fpr) 
+                    fpr = fpr, 
+                    audit_recovery = audit_recovery) 
     
     # Setup B-splines
     B = splines::bs(x = temp$Xstar, 
@@ -220,7 +221,7 @@ for (r in c(0.9, 0.5, 0.25)) {
                                simplify = FALSE,
                                audit_recovery = r)) %>% 
     dplyr::mutate(audit_recovery = r)
-  sims %>% 
-    write.csv(file = paste0("vary_wave2_design/wave2_residual_recover", 100 * r, ".csv"), 
+  sims %>%
+    write.csv(file = paste0("vary_wave2_design/wave2_residual_recover", 100 * r, ".csv"),
               row.names = FALSE)
 }
