@@ -9,26 +9,19 @@ library(tidyr) ## To transform data
 library(ggplot2) ## To create plots
 
 # Define colors
-#slide_colors = c("#C3CFFA", "#C9B0B0", "#DD6D53", "#60CAD6", "#F0D290", "#fac3cf") 
 slide_colors = c("#38544f", "#78c0b5", "#dd6682", "#662708", "#ffcdd9")
 
 # Define true parameter values from the sims
 beta0 = -1.93 ## intercept in model of Y|X,Z
 beta1 = 1.88 ## coefficient on X in model of Y|X,Z
-beta2 = 1.00 ## coefficient on Z in model of Y|X,Z
+beta2 = 0.10 ## coefficient on Z in model of Y|X,Z
 
 # Read in simulation results
 url_stem = "https://raw.githubusercontent.com/sarahlotspeich/ALI_EHR/main/sim-data/vary_wave2_design/vary_tpr_fpr/"
 error_setts = c("tpr50_fpr50", "tpr80_fpr20", "tpr95_fpr05", "tpr99_fpr01")
-sim_urls = c(paste0(url_stem, "wave2_srs_", error_setts, ".csv"),
-             paste0(url_stem, "wave2_cc_", error_setts, ".csv"),
-             paste0(url_stem, "wave2_bcc_", error_setts, ".csv"),
-             paste0(url_stem, "wave2_score_", error_setts, ".csv"),
-             paste0(url_stem, "wave2_residual_", error_setts, ".csv")
-)
 
 sim_res = data.frame()
-for(des in c("wave2_srs_", "wave2_cc_", "wave2_bcc_", "wave2_score_", "wave2_residual_")) {
+for(des in c("wave2_srs_", "wave2_cc_", "wave2_bcc_", "wave2_score_", "wave2_residual_", "wave2_optMLE2_")) {
   des_urls = paste0(url_stem, des, error_setts, ".csv") ## URLs to results on GitHub
   des_res = do.call(what = bind_rows,
                     args = lapply(X = des_urls,
@@ -38,7 +31,11 @@ for(des in c("wave2_srs_", "wave2_cc_", "wave2_bcc_", "wave2_score_", "wave2_res
                                       levels = c("TPR = 99%, FPR = 1%",
                                                  "TPR = 95%, FPR = 5%",
                                                  "TPR = 80%, FPR = 20%",
-                                                 "TPR = 50%, FPR = 50%")))
+                                                 "TPR = 50%, FPR = 50%"),
+                                      labels = c("TPR = 99%,\nFPR = 1%",
+                                                 "TPR = 95%,\nFPR = 5%",
+                                                 "TPR = 80%,\nFPR = 20%",
+                                                 "TPR = 50%,\nFPR = 50%")))
   if (des == "wave2_srs_") {
     sim_res = des_res
   } else {
@@ -58,6 +55,7 @@ sim_res |>
   arrange(desc(num))
 
 ## Describe resampling due to empty B-spline sieve
+### This was most common among score function and optimal sample
 sim_res |> 
   select(error_sett, ends_with("resampled")) |> 
   gather(key = "design", value = "resampled", -1) |> 
@@ -88,7 +86,7 @@ long_beta1 |>
   xlab("Error Rates in Allostatic Load Index Components") +
   ylab("Estimated Log Odds Ratio") +
   theme_minimal(base_size = 14) +
-  theme(legend.position = "top",
+  theme(legend.position = "right",
         axis.title = element_text(face = "bold"),
         legend.title = element_text(face = "bold"))
 ggsave(filename = "~/Documents/ALI_EHR/figures/vary_wave2_design_boxplot.png",
@@ -107,7 +105,7 @@ long_beta1 |>
   xlab("Error Rates in Allostatic Load Index Components") +
   ylab("Efficiency") +
   theme_minimal(base_size = 18) +
-  theme(legend.position = "top",
+  theme(legend.position = "right",
         axis.title = element_text(face = "bold"),
         legend.title = element_text(face = "bold"))
 ggsave(filename = "~/Documents/ALI_EHR/figures/vary_wave2_design_line_efficiency.png",
@@ -133,9 +131,9 @@ long_beta1 |>
   scale_color_manual(values = slide_colors,
                      name = "Design:") +
   xlab("Error Rates in Allostatic Load Index Components") +
-  ylab("Efficiency") +
+  ylab("Relative Efficiency (to SRS)") +
   theme_minimal(base_size = 18) +
-  theme(legend.position = "top",
+  theme(legend.position = "right",
         axis.title = element_text(face = "bold"),
         legend.title = element_text(face = "bold"))
 ggsave(filename = "~/Documents/ALI_EHR/figures/vary_wave2_design_line_relative_efficiency.png",
