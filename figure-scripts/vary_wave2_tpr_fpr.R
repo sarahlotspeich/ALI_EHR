@@ -9,7 +9,8 @@ library(tidyr) ## To transform data
 library(ggplot2) ## To create plots
 
 # Define colors
-slide_colors = c("#38544f", "#78c0b5", "#dd6682", "#662708", "#ffcdd9")
+#paper_colors = c("#38544f", "#78c0b5", "#dd6682", "#662708", "#ffcdd9")
+paper_colors = c("#ff99ff", "#787ff6", "#8bdddb", "#7dd5f6", "#ffbd59")
 
 # Define true parameter values from the sims
 beta0 = -1.93 ## intercept in model of Y|X,Z
@@ -78,7 +79,7 @@ long_beta1 |>
   dplyr::filter(design != "Weighted Score") |> 
   ggplot(aes(x = error_sett, y = est, fill = design)) +
   geom_boxplot() +
-  scale_fill_manual(values = slide_colors,
+  scale_fill_manual(values = paper_colors,
                     name = "Validation Study Design:") +
   geom_hline(yintercept = beta1,
              linetype = 2,
@@ -86,7 +87,7 @@ long_beta1 |>
   xlab("Error Rates in Allostatic Load Index Components") +
   ylab("Estimated Log Odds Ratio") +
   theme_minimal(base_size = 14) +
-  theme(legend.position = "right",
+  theme(legend.position = "top",
         axis.title = element_text(face = "bold"),
         legend.title = element_text(face = "bold"))
 ggsave(filename = "~/Documents/ALI_EHR/figures/vary_wave2_design_boxplot.png",
@@ -99,13 +100,13 @@ long_beta1 |>
   summarize(eff = 1 / var(est, na.rm = TRUE)) |> 
   ggplot(aes(x = error_sett, y = eff, color = design, group = design)) +
   geom_point(size = 2) +
-  geom_line(linewidth = 1.2) +
-  scale_color_manual(values = slide_colors,
+  geom_line(linewidth = 1.2, alpha = 1) +
+  scale_color_manual(values = paper_colors,
                      name = "Design:") +
   xlab("Error Rates in Allostatic Load Index Components") +
   ylab("Efficiency") +
   theme_minimal(base_size = 18) +
-  theme(legend.position = "right",
+  theme(legend.position = "top",
         axis.title = element_text(face = "bold"),
         legend.title = element_text(face = "bold"))
 ggsave(filename = "~/Documents/ALI_EHR/figures/vary_wave2_design_line_efficiency.png",
@@ -127,13 +128,13 @@ long_beta1 |>
   dplyr::mutate(re = eff / srs_eff) |> 
   ggplot(aes(x = error_sett, y = re, color = design, group = design)) +
   geom_point(size = 2) +
-  geom_line(linewidth = 1.2) +
-  scale_color_manual(values = slide_colors,
+  geom_line(linewidth = 1.2, alpha = 1) +
+  scale_color_manual(values = paper_colors,
                      name = "Design:") +
   xlab("Error Rates in Allostatic Load Index Components") +
   ylab("Relative Efficiency (to SRS)") +
   theme_minimal(base_size = 18) +
-  theme(legend.position = "right",
+  theme(legend.position = "top",
         axis.title = element_text(face = "bold"),
         legend.title = element_text(face = "bold"))
 ggsave(filename = "~/Documents/ALI_EHR/figures/vary_wave2_design_line_relative_efficiency.png",
