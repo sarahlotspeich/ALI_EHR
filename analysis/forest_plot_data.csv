@@ -1,0 +1,10 @@
+﻿Analysis,Coefficient,Estimate,LB,UB
+Unvalidated Data,Intercept,0.209,0.126,0.339
+Unvalidated Data,ALI,1.099,1.028,1.175
+Unvalidated Data,Age,1.108,1.001,1.228
+Preliminary Validation Data,Intercept,0.173,0.115,0.262
+Preliminary Validation Data,ALI,1.207,1.167,1.247
+Preliminary Validation Data,Age,1.104,1.007,1.211
+Final Validation Data,Intercept,0.227,0.156,0.33
+Final Validation Data,ALI,1.119,1.085,1.15
+Final Validation Data,Age,1.107,1.019,1.203
