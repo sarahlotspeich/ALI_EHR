@@ -5,12 +5,12 @@
 ## N: total sample size (phase I) for the error-prone EHR data. Default is N = 1000.
 ## n: validation sample size (phase II) for the chart review data (must have N > n). Default is n = 100.
 ## lambda_age: mean of the Poisson distribution for age. Default is lambda_age = 4.566.
-## betas: vector of 3 coefficients for the analysis model (intercept, log odds ratio for X, and log odds ratio for Z). Default is betas = c(-1.75, 1.88, 0.10).
+## betas: vector of 3 coefficients for the analysis model (intercept, log odds ratio for X, and log odds ratio for Z). Default is betas = c(-1.93, 1.88, 0.10).
 ## pS: vector of 10 probabilities for the components of the ALI being "yes". Default is pS = c(0.2500000, 0.9870130, 0.4549098, 0.1450000, 0.0580000, 0.2490119, 0.3138501, 0.3316391, 0.3111111, 0.0000000). 
 ## pM: vector of 10 probabilities for the components of the ALI being missing. Default is pM = c(0.996, 0.153, 0.002, 0.000, 0.000, 0.494, 0.213, 0.213, 0.955, 0.983). 
 
 sim_ali_data = function(tpr = 0.95, fpr = 0.05, audit_recovery = 1, N = 1000, n = 100,
-                        lambda_age = 4.566, betas = c(-1.75, 1.88, 0.10), 
+                        lambda_age = 4.566, betas = c(-1.93, 1.88, 0.10), 
                         pS = c(0.2500000, 0.9870130, 0.4549098, 0.1450000, 0.0580000,
                                0.2490119, 0.3138501, 0.3316391, 0.3111111, 0.0000000),
                         pM = c(0.996, 0.153, 0.002, 0.000, 0.000,
