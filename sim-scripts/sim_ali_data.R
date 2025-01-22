@@ -24,6 +24,9 @@ sim_ali_data = function(tpr = 0.95, fpr = 0.05, audit_recovery = 1, N = 1000, n 
   ### from Poisson(lambda_age)
   Z = rpois(n = N,
             lambda = lambda_age)
+  
+  ### Shift it so that Z = 0 represents 18 years old 
+  Z = Z - 1.8 
 
   ## Simulate error-free (validated) version of error-prone covariate: ALI
   ### Begin with stress indicators (50 per person) from Bernoulli (pS)
