@@ -25,16 +25,16 @@ data = val_data |>
 # Recenter age at 18 and rescale to be in 10-year increments and
 ## ALI/ALI* to be in 0.1-point increments. 
 data = data |> 
-  mutate(AGE_AT_ENCOUNTER_10 = (AGE_AT_ENCOUNTER - 18) / 10)
+  mutate(AGE_AT_ENCOUNTER_10 = AGE_AT_ENCOUNTER / 10)
 
 # Estimate parameters using Phase IIa audits + the rest of Phase I -------------
 ## Setup B-splines
 B = splines::bs(x = data$ALI_STAR, 
-                df = 12, 
+                df = 16, 
                 Boundary.knots = range(data$ALI_STAR), 
                 intercept = TRUE, 
                 degree = 3)
-colnames(B) = paste0("bs", seq(1, 12))
+colnames(B) = paste0("bs", seq(1, 16))
 data = data |> 
   bind_cols(B)
 
