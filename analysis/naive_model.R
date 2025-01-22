@@ -6,7 +6,7 @@ unval_data = read.csv("~/Documents/Allostatic_load_audits/all_ali_dat.csv") |>
 # Recenter age at 18 and rescale to be in 10-year increments and
 ## ALI/ALI* to be in 0.1-point increments. 
 unval_data = unval_data |> 
-  mutate(AGE_AT_ENCOUNTER_10 = AGE_AT_ENCOUNTER / 10,
+  mutate(AGE_AT_ENCOUNTER_10 = (AGE_AT_ENCOUNTER - 18) / 10,
          ALI_01 = ALI / 0.1)
 
 # Fit naive model Y ~ X* + Z
