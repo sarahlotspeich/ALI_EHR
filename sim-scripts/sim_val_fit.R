@@ -110,7 +110,7 @@ wave2_val = function(data, val_design) {
 }
 
 # Function to simulate data and then fit all models ----------------------------
-sim_val_fit = function(id, audit_recovery, val_design) {
+sim_val_fit = function(id, tpr = 0.95, fpr = 0.05, audit_recovery = 1, val_design) {
   results = data.frame(sim = id, val_design,
                        gs_beta0 = NA, gs_beta1 = NA, gs_beta2 = NA,
                        naive_beta0 = NA, naive_beta1 = NA, naive_beta2 = NA,
@@ -119,7 +119,9 @@ sim_val_fit = function(id, audit_recovery, val_design) {
                        smle_conv_msg = NA, empty_sieve = FALSE)
   
   # Simulate data 
-  temp = sim_ali_data(audit_recovery = audit_recovery)
+  temp = sim_ali_data(tpr = tpr, 
+                      fpr = fpr, 
+                      audit_recovery = audit_recovery)
   
   # Setup B-splines
   B = bs(x = temp$Xstar, ## Error-prone ALI (from EHR)
