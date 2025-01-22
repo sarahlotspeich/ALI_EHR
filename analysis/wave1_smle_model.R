@@ -24,7 +24,7 @@ data = val_data |>
 
 # Recenter age at 18 and rescale to be in 10-year increments
 data = data |> 
-  mutate(AGE_AT_ENCOUNTER_10 = (AGE_AT_ENCOUNTER - 18) / 10)
+  mutate(AGE_AT_ENCOUNTER_10 = AGE_AT_ENCOUNTER / 10)
 
 # Estimate parameters using Phase IIa audits + the rest of Phase I -------------
 ## Setup B-splines
