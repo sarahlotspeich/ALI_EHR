@@ -22,12 +22,9 @@ data = val_data |>
       select(PAT_MRN_ID, ANY_ENCOUNTERS, AGE_AT_ENCOUNTER, ALI_STAR)
   )
 
-# Recenter age at 18 and rescale to be in 10-year increments and
-## ALI/ALI* to be in 0.1-point increments. 
+# Recenter age at 18 and rescale to be in 10-year increments
 data = data |> 
-  mutate(AGE_AT_ENCOUNTER_10 = (AGE_AT_ENCOUNTER - 18) / 10,
-         ALI_01 = ALI / 0.1, 
-         ALI_STAR_01 = ALI_STAR / 0.1)
+  mutate(AGE_AT_ENCOUNTER_10 = (AGE_AT_ENCOUNTER - 18) / 10)
 
 # Estimate parameters using Phase IIa audits + the rest of Phase I -------------
 ## Setup B-splines
@@ -41,7 +38,7 @@ data = data |>
   bind_cols(B)
 
 ### Fit SMLE model Y ~ X + Z----------------------------------------------------
-suppressMessages(fit <- logistic2ph(
+fit <- logistic2ph(
   Y_unval = NULL,
   Y = "ANY_ENCOUNTERS",
   X_unval = "ALI_STAR",
@@ -53,7 +50,7 @@ suppressMessages(fit <- logistic2ph(
   noSE = FALSE,
   TOL = 1e-04,
   MAX_ITER = 1000
-))
+)
 
 # Transform log odds ratio for ALI from 1-point to 0.1-point scale
 beta1 = fit$coefficients$Estimate[2] ## original 
