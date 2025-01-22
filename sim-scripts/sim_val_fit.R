@@ -69,12 +69,34 @@ wave2_val = function(data, val_design) {
                              Validated = "V1", 
                              nondiff_X_unval = TRUE)
     
-    beta_hat = mle_wave1$mod_Y_val$Est[3]
-    eta_hat = with(mle_wave1, 
-                   c(mod_Y_val$Est[1:2], 
-                     mod_Y_unval$Est, 
-                     mod_X_unval$Est, 
-                     mod_X_val$Est))
+    if (mle_wave1$conv) {
+      beta_hat = mle_wave1$mod_Y_val$Est[3]
+      eta_hat = with(mle_wave1, 
+                     c(mod_Y_val$Est[1:2], 
+                       mod_Y_unval$Est, 
+                       mod_X_unval$Est, 
+                       mod_X_val$Est))
+    } else {
+      ## If MLEs don't converge, use complete case estimates -------------------
+      mod_Y_val = glm(formula = Y ~ Z_strat + X_strat, 
+                      data = temp, 
+                      family = "binomial", 
+                      subset = V1 == 1)
+      mod_X_unval = glm(formula = Xstar_strat ~ X_strat + Z_strat, 
+                        data = temp, 
+                        family = "binomial", 
+                        subset = V1 == 1)
+      mod_X_val = glm(formula =  X_strat ~ Z_strat, 
+                      data = temp, 
+                      family = "binomial", 
+                      subset = V1 == 1)
+      beta_hat = mod_Y_val$coefficients[3]
+      eta_hat = c(mod_Y_val$coefficients[1:2], 
+                  mod_X_unval$coefficients, 
+                  mod_X_val$coefficients)
+      print("Used Wave I complete-case estimates instead.")
+    }
+    
     s_hat = score(comp_dat = complete_data, 
                   Y_val = "Y", 
                   Y_unval = NULL, 
@@ -111,7 +133,7 @@ wave2_val = function(data, val_design) {
 
 # Function to simulate data and then fit all models ----------------------------
 sim_val_fit = function(id, tpr = 0.95, fpr = 0.05, audit_recovery = 1, val_design) {
-  results = data.frame(sim = id, val_design,
+  results = data.frame(sim = id, val_design, 
                        gs_beta0 = NA, gs_beta1 = NA, gs_beta2 = NA,
                        naive_beta0 = NA, naive_beta1 = NA, naive_beta2 = NA,
                        cc_beta0 = NA, cc_beta1 = NA, cc_beta2 = NA,
