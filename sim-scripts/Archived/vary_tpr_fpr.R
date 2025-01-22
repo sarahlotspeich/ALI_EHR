@@ -2,12 +2,13 @@
 setwd("~/Documents/")
 
 # Load library --------------------------------------------------------
+library(logiSieve) ## for SMLE logistic regression with covariate error
 # library(sleev) ## for SMLE logistic regression
-source("~/Documents/logreg2phRonly/R/logreg2ph.R")
-source("~/Documents/logreg2phRonly/R/hessian_row.R")
-source("~/Documents/logreg2phRonly/R/observed_data_loglik.R")
-source("~/Documents/logreg2phRonly/R/pl_theta.R")
-source("~/Documents/logreg2phRonly/R/profile_out.R")
+# source("~/Documents/logreg2phRonly/R/logreg2ph.R")
+# source("~/Documents/logreg2phRonly/R/hessian_row.R")
+# source("~/Documents/logreg2phRonly/R/observed_data_loglik.R")
+# source("~/Documents/logreg2phRonly/R/pl_theta.R")
+# source("~/Documents/logreg2phRonly/R/profile_out.R")
 
 # Set parameters that won't be varied in the loop
 ## These values will be set as the defaults in the sim_data() function for convenience
@@ -140,6 +141,10 @@ sim_data_fit = function(id, N = 1000, tpr = 0.99, fpr = 0.01) {
   results[1, c("cc_beta0", "cc_beta1", "cc_beta2")] = coefficients(fit)
   
   # 4. SMLE
+  fit <- logreg2ph(analysis_formula = Y ~ Xmiss + Z, 
+                   error_formula = paste("Xmiss ~", paste(colnames(B), collapse = "+")), 
+                   data = temp)
+  
   suppressMessages(fit <- logreg2ph(
     Y_unval = NULL,
     Y_val = "Y",

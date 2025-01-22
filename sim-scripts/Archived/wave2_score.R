@@ -110,80 +110,19 @@ sim_data_fit = function(id, tpr, fpr) {
   colnames(B) = paste0("bs", seq(1, nsieve))
   temp = cbind(temp, B)
   
-  # Draw a BCC* of n / 2 in the first wave 
-  ## Stratify X* at the median
-  temp$Xstar_strat = as.numeric(temp$Xstar <= median(temp$Xstar))
-  ## Create Wave 1 validation indicator
-  temp$V1 = sample_bcc(dat = temp,
-                       phI = nrow(temp), 
-                       phII = (n / 2), 
-                       sample_on = c("Y", "Xstar_strat"), 
-                       wave1_Validated = NULL)
-
-  ## Create Wave 2 validation indicator 
-  temp$V2 = sample_sfs(formula = Y ~ Xstar + Z, 
-                       family = "binomial", 
-                       dat = temp, 
-                       phI = nrow(temp), 
-                       phII = n / 2, 
-                       X = "Xstar",
-                       wave1_Validated = temp$V1 == 1)
-  
-  ## Create any wave validation indicator
-  temp$V = pmax(temp$V1, temp$V2)
+  # Draw a SFS of n based on naive model
+  temp$V = sample_sfs(formula = Y ~ Xstar + Z, 
+                      family = "binomial", 
+                      dat = temp, 
+                      phI = N, 
+                      phII = ceiling(pV * N),
+                      X = "Xstar")
   
   ## Check for empty sieves in validated data
   sieve_sums = temp %>%
     dplyr::filter(V == 1) %>% 
     dplyr::select(dplyr::starts_with("bs")) %>%
     colSums()
-  
-  ## If any sieves are empty, re-sample waves 1 and 2
-  while(any(sieve_sums == 0)) {
-    ## Save logical indicator that validation study was re-sampled
-    results[1, "score_data_resampled"] = TRUE
-    
-    # Simulate data 
-    temp = sim_data(tpr = tpr, 
-                    fpr = fpr) 
-    
-    # Setup B-splines
-    B = splines::bs(x = temp$Xstar, 
-                    df = nsieve, 
-                    Boundary.knots = range(temp$Xstar), 
-                    intercept = TRUE)
-    colnames(B) = paste0("bs", seq(1, nsieve))
-    temp = cbind(temp, B)
-    
-    # Draw a BCC* of n / 2 in the first wave 
-    ## Stratify X* at the median
-    temp$Xstar_strat = as.numeric(temp$Xstar <= median(temp$Xstar))
-    
-    ## Create Wave 1 validation indicator
-    temp$V1 = sample_bcc(dat = temp,
-                         phI = nrow(temp), 
-                         phII = (n / 2), 
-                         sample_on = c("Y", "Xstar_strat"), 
-                         wave1_Validated = NULL)
-    
-    ## Create Wave 2 validation indicator 
-    temp$V2 = sample_sfs(formula = Y ~ Xstar + Z, 
-                         family = "binomial", 
-                         dat = temp, 
-                         phI = nrow(temp), 
-                         phII = n / 2, 
-                         X = "Xstar",
-                         wave1_Validated = temp$V1 == 1)
-    
-    ## Create any wave validation indicator
-    temp$V = pmax(temp$V1, temp$V2)
-    
-    ## Check for empty sieves in validated data
-    sieve_sums = temp %>%
-      dplyr::filter(V == 1) %>% 
-      dplyr::select(dplyr::starts_with("bs")) %>%
-      colSums()
-  }
   
   ## Create Xmiss to be NA if V = 0
   temp = temp %>% 
