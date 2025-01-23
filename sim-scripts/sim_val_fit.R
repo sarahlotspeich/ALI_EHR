@@ -79,15 +79,15 @@ wave2_val = function(data, val_design) {
     } else {
       ## If MLEs don't converge, use complete case estimates -------------------
       mod_Y_val = glm(formula = Y ~ Z_strat + X_strat, 
-                      data = temp, 
+                      data = data, 
                       family = "binomial", 
                       subset = V1 == 1)
       mod_X_unval = glm(formula = Xstar_strat ~ X_strat + Z_strat, 
-                        data = temp, 
+                        data = data, 
                         family = "binomial", 
                         subset = V1 == 1)
       mod_X_val = glm(formula =  X_strat ~ Z_strat, 
-                      data = temp, 
+                      data = data, 
                       family = "binomial", 
                       subset = V1 == 1)
       beta_hat = mod_Y_val$coefficients[3]
