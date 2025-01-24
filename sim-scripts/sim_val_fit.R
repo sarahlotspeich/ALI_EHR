@@ -188,7 +188,7 @@ sim_val_fit = function(id, tpr = 0.95, fpr = 0.05, audit_recovery = 1, val_desig
            df = temp_nsieve, 
            Boundary.knots = range(temp$Xstar), 
            intercept = TRUE)
-    colnames(B) = paste0("bs", seq(1, nsieve))
+    colnames(B) = paste0("bs", seq(1, temp_nsieve))
     temp = cbind(temp, B)
   }
 
