@@ -152,7 +152,7 @@ sim_val_fit = function(id, tpr = 0.95, fpr = 0.05, audit_recovery = 1, val_desig
          intercept = TRUE)
   colnames(B) = paste0("bs", seq(1, nsieve))
   temp = cbind(temp, B)
-  
+
   # Wave 1 validation: Draw a BCC* of 52 from (Y, X*) strata
   ## Stratify X* at the median
   temp$Xstar_strat = as.numeric(temp$Xstar <= median(temp$Xstar))
@@ -176,9 +176,9 @@ sim_val_fit = function(id, tpr = 0.95, fpr = 0.05, audit_recovery = 1, val_desig
   results[1, "empty_sieve"] = 0 %in% colSums(temp[which(temp$V == 1), colnames(B)])
   ## If present, decrease number of B-splines one at a time 
   temp_nsieve = nsieve ### Initialize at current value
-  while(0 %in% colSums(temp[which(temp$V == 1), colnames(B)]) & temp_nsieve >= 4) {
+  while(0 %in% colSums(temp[which(temp$V == 1), colnames(B)]) & temp_nsieve >= 5) {
     ### Decrease number of B-splines by 1
-    temp_nsieve = nsieve - 1
+    temp_nsieve = temp_nsieve - 1
     
     ### Delete existing B-splines
     temp[, grep(pattern = "bs", x = colnames(B), value = TRUE)] = NULL
@@ -191,7 +191,7 @@ sim_val_fit = function(id, tpr = 0.95, fpr = 0.05, audit_recovery = 1, val_desig
     colnames(B) = paste0("bs", seq(1, temp_nsieve))
     temp = cbind(temp, B)
   }
-
+  
   if (!0 %in% colSums(temp[which(temp$V == 1), colnames(B)])) {
     # Save the number of B-splines used 
     results[1, "nsieve"] = temp_nsieve
