@@ -138,7 +138,7 @@ sim_val_fit = function(id, tpr = 0.95, fpr = 0.05, audit_recovery = 1, val_desig
                        naive_beta0 = NA, naive_beta1 = NA, naive_beta2 = NA,
                        cc_beta0 = NA, cc_beta1 = NA, cc_beta2 = NA,
                        smle_beta0 = NA, smle_beta1 = NA, smle_beta2 = NA, 
-                       smle_conv_msg = NA, empty_sieve = FALSE)
+                       smle_conv_msg = NA, empty_sieve = FALSE, nsieve = NA)
   
   # Simulate data 
   temp = sim_ali_data(tpr = tpr, 
@@ -174,18 +174,28 @@ sim_val_fit = function(id, tpr = 0.95, fpr = 0.05, audit_recovery = 1, val_desig
   
   # Check for empty sieves in B-splines of validated data
   results[1, "empty_sieve"] = 0 %in% colSums(temp[which(temp$V == 1), colnames(B)])
-  ## If present, resample Wave 2 until no longer empty 
-  # while(0 %in% colSums(temp[which(temp$V == 1), colnames(B)])) {
-  #   # Wave 2 validation: Draw remaining 48 from specified design
-  #   ## Create Wave 2 validation indicator 
-  #   temp = temp |> 
-  #     wave2_val(val_design = val_design)
-  #   
-  #   # Final validation: Create indicator for Wave 1 *or* Wave 2
-  #   temp$V = pmax(temp$V1, temp$V2)
-  # }
-  
+  ## If present, decrease number of B-splines one at a time 
+  temp_nsieve = nsieve ### Initialize at current value
+  while(0 %in% colSums(temp[which(temp$V == 1), colnames(B)]) & temp_nsieve >= 4) {
+    ### Decrease number of B-splines by 1
+    temp_nsieve = nsieve - 1
+    
+    ### Delete existing B-splines
+    temp[, grep(pattern = "bs", x = colnames(B), value = TRUE)] = NULL
+    
+    ### Setup new B-splines
+    B = bs(x = temp$Xstar, ## Error-prone ALI (from EHR)
+           df = temp_nsieve, 
+           Boundary.knots = range(temp$Xstar), 
+           intercept = TRUE)
+    colnames(B) = paste0("bs", seq(1, nsieve))
+    temp = cbind(temp, B)
+  }
+
   if (!0 %in% colSums(temp[which(temp$V == 1), colnames(B)])) {
+    # Save the number of B-splines used 
+    results[1, "nsieve"] = temp_nsieve
+    
     # Create Xmiss to be NA if V = 0 (for unvalidated patients)
     temp = temp |> 
       mutate(Xmiss = if_else(condition = V == 0, 
