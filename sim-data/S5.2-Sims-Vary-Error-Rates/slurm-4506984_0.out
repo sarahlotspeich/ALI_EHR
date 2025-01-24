@@ -1,0 +1,31 @@
+#########################BEGIN-PROLOG#########################
+JobName   = errBCC
+Account   = lotspeichgrp
+NodeList  = cpu-amd-05
+Resources = cpu=1,mem=116G,node=1,billing=9
+WorkDir   = /home/lotspes/ali/S5.1-Sims-Vary-Error-Rates
+###########################END-PROLOG#########################
+SLURM_JOBID:  4506984
+SLURM_ARRAY_TASK_ID:  0
+SLURM_ARRAY_JOB_ID:  4506984
+Loading apps/r/4.3.3
+  Loading requirement: compilers/gcc/12.3.0 libs/intel/mkl/2023.2.0
+Loading required package: Rcpp
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+Loading required package: usethis
+ℹ SHA-1 hash of file is "011f5b30939ddbbf3c4f97df6174a2fd8b3c235d"
+ℹ SHA-1 hash of file is "5afe0626a903f708c1c29b0e0bf75a1a9e449613"
+[1] "Finished with error setting 1"
+[1] "Finished with error setting 2"
+[1] "Finished with error setting 3"
+[1] "Finished with error setting 4"
