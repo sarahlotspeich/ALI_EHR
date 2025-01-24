@@ -125,6 +125,8 @@ wave2_val = function(data, val_design) {
                               sample_on = c("Y", "Xstar_strat"), 
                               des = opt_des2, 
                               wave1_Validated = "V1")
+    } else {
+      data$V2 = NA
     }
   } 
   
@@ -169,76 +171,79 @@ sim_val_fit = function(id, tpr = 0.95, fpr = 0.05, audit_recovery = 1, val_desig
   temp = temp |> 
     wave2_val(val_design = val_design)
 
-  # Final validation: Create indicator for Wave 1 *or* Wave 2
-  temp$V = pmax(temp$V1, temp$V2)
+  # Check that the Wave2 sampling was successful
+  if(!any(is.na(temp$V2))) {
+    # Final validation: Create indicator for Wave 1 *or* Wave 2
+    temp$V = pmax(temp$V1, temp$V2)
+    
+    # Check for empty sieves in B-splines of validated data
+    results[1, "empty_sieve"] = 0 %in% colSums(temp[which(temp$V == 1), colnames(B)])
+    ## If present, decrease number of B-splines one at a time 
+    temp_nsieve = nsieve ### Initialize at current value
+    while(0 %in% colSums(temp[which(temp$V == 1), colnames(B)]) & temp_nsieve >= 5) {
+      ### Decrease number of B-splines by 1
+      temp_nsieve = temp_nsieve - 1
+      
+      ### Delete existing B-splines
+      temp[, grep(pattern = "bs", x = colnames(B), value = TRUE)] = NULL
+      
+      ### Setup new B-splines
+      B = bs(x = temp$Xstar, ## Error-prone ALI (from EHR)
+             df = temp_nsieve, 
+             Boundary.knots = range(temp$Xstar), 
+             intercept = TRUE)
+      colnames(B) = paste0("bs", seq(1, temp_nsieve))
+      temp = cbind(temp, B)
+    }
+    
+    if (!0 %in% colSums(temp[which(temp$V == 1), colnames(B)])) {
+      # Save the number of B-splines used 
+      results[1, "nsieve"] = temp_nsieve
+      
+      # Create Xmiss to be NA if V = 0 (for unvalidated patients)
+      temp = temp |> 
+        mutate(Xmiss = if_else(condition = V == 0, 
+                               true = NA, 
+                               false = Xval))
+      
+      # 1. Gold standard analysis
+      fit = glm(formula = Y ~ X + Z, 
+                family = "binomial", 
+                data = temp)
+      results[1, c("gs_beta0", "gs_beta1", "gs_beta2")] = coefficients(fit)
+      
+      # 2. Naive analysis
+      fit = glm(formula = Y ~ Xstar + Z, 
+                family = "binomial", 
+                data = temp)
+      results[1, c("naive_beta0", "naive_beta1", "naive_beta2")] = coefficients(fit)
+      
+      # 3. Complete case analysis
+      fit = glm(formula = Y ~ Xmiss + Z, 
+                family = "binomial", 
+                data = temp, 
+                subset = V == 1)
+      results[1, c("cc_beta0", "cc_beta1", "cc_beta2")] = coefficients(fit)
+      
+      # 4. SMLE analysis
+      fit <- logistic2ph(
+        Y_unval = NULL,
+        Y = "Y",
+        X_unval = "Xstar",
+        X = "Xmiss",
+        Z = "Z",
+        Bspline = colnames(B),
+        data = temp,
+        hn_scale = 1,
+        noSE = TRUE,
+        TOL = 1e-04,
+        MAX_ITER = 1000
+      )
+      results[1, c("smle_beta0", "smle_beta1", "smle_beta2")] = fit$coefficients$Estimate
+      results[1, "smle_conv_msg"] = fit$converge
+    }
+  } 
   
-  # Check for empty sieves in B-splines of validated data
-  results[1, "empty_sieve"] = 0 %in% colSums(temp[which(temp$V == 1), colnames(B)])
-  ## If present, decrease number of B-splines one at a time 
-  temp_nsieve = nsieve ### Initialize at current value
-  while(0 %in% colSums(temp[which(temp$V == 1), colnames(B)]) & temp_nsieve >= 5) {
-    ### Decrease number of B-splines by 1
-    temp_nsieve = temp_nsieve - 1
-    
-    ### Delete existing B-splines
-    temp[, grep(pattern = "bs", x = colnames(B), value = TRUE)] = NULL
-    
-    ### Setup new B-splines
-    B = bs(x = temp$Xstar, ## Error-prone ALI (from EHR)
-           df = temp_nsieve, 
-           Boundary.knots = range(temp$Xstar), 
-           intercept = TRUE)
-    colnames(B) = paste0("bs", seq(1, temp_nsieve))
-    temp = cbind(temp, B)
-  }
-  
-  if (!0 %in% colSums(temp[which(temp$V == 1), colnames(B)])) {
-    # Save the number of B-splines used 
-    results[1, "nsieve"] = temp_nsieve
-    
-    # Create Xmiss to be NA if V = 0 (for unvalidated patients)
-    temp = temp |> 
-      mutate(Xmiss = if_else(condition = V == 0, 
-                             true = NA, 
-                             false = Xval))
-    
-    # 1. Gold standard analysis
-    fit = glm(formula = Y ~ X + Z, 
-              family = "binomial", 
-              data = temp)
-    results[1, c("gs_beta0", "gs_beta1", "gs_beta2")] = coefficients(fit)
-    
-    # 2. Naive analysis
-    fit = glm(formula = Y ~ Xstar + Z, 
-              family = "binomial", 
-              data = temp)
-    results[1, c("naive_beta0", "naive_beta1", "naive_beta2")] = coefficients(fit)
-    
-    # 3. Complete case analysis
-    fit = glm(formula = Y ~ Xmiss + Z, 
-              family = "binomial", 
-              data = temp, 
-              subset = V == 1)
-    results[1, c("cc_beta0", "cc_beta1", "cc_beta2")] = coefficients(fit)
-    
-    # 4. SMLE analysis
-    fit <- logistic2ph(
-      Y_unval = NULL,
-      Y = "Y",
-      X_unval = "Xstar",
-      X = "Xmiss",
-      Z = "Z",
-      Bspline = colnames(B),
-      data = temp,
-      hn_scale = 1,
-      noSE = TRUE,
-      TOL = 1e-04,
-      MAX_ITER = 1000
-    )
-    results[1, c("smle_beta0", "smle_beta1", "smle_beta2")] = fit$coefficients$Estimate
-    results[1, "smle_conv_msg"] = fit$converge
-  }
-
   # Return results
   return(results)
 }
