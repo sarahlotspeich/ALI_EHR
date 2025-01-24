@@ -1,0 +1,57 @@
+#########################BEGIN-PROLOG#########################
+JobName   = recOPT
+Account   = lotspeichgrp
+NodeList  = cpu-amd-09
+Resources = cpu=1,mem=116G,node=1,billing=9
+WorkDir   = /home/lotspes/ali/S5.2-Sims-Vary-Data-Recovery
+###########################END-PROLOG#########################
+SLURM_JOBID:  4506991
+SLURM_ARRAY_TASK_ID:  0
+SLURM_ARRAY_JOB_ID:  4506991
+Loading apps/r/4.3.3
+  Loading requirement: compilers/gcc/12.3.0 libs/intel/mkl/2023.2.0
+Loading required package: Rcpp
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+Loading required package: usethis
+ℹ SHA-1 hash of file is "011f5b30939ddbbf3c4f97df6174a2fd8b3c235d"
+ℹ SHA-1 hash of file is "5afe0626a903f708c1c29b0e0bf75a1a9e449613"
+[1] "Used Wave I complete-case estimates instead."
+[1] "Used Wave I complete-case estimates instead."
+[1] "Finished with 100 % recovery"
+[1] "Used Wave I complete-case estimates instead."
+[1] "Finished with 90 % recovery"
+[1] "Used Wave I complete-case estimates instead."
+[1] "Used Wave I complete-case estimates instead."
+[1] "Finished with 50 % recovery"
+[1] "Used Wave I complete-case estimates instead."
+[1] "Used Wave I complete-case estimates instead."
+[1] "Used Wave I complete-case estimates instead."
+[1] "Finished with 25 % recovery"
+[1] "Used Wave I complete-case estimates instead."
+[1] "Used Wave I complete-case estimates instead."
+[1] "Used Wave I complete-case estimates instead."
+[1] "Used Wave I complete-case estimates instead."
+[1] "Used Wave I complete-case estimates instead."
+[1] "Used Wave I complete-case estimates instead."
+[1] "Used Wave I complete-case estimates instead."
+Error in `$<-.data.frame`(`*tmp*`, "V", value = numeric(0)) : 
+  replacement has 0 rows, data has 1000
+Calls: bind_rows ... pbsapply -> pblapply -> lapply -> FUN -> $<- -> $<-.data.frame
+In addition: Warning messages:
+1: glm.fit: fitted probabilities numerically 0 or 1 occurred 
+2: glm.fit: fitted probabilities numerically 0 or 1 occurred 
+3: glm.fit: fitted probabilities numerically 0 or 1 occurred 
+4: glm.fit: fitted probabilities numerically 0 or 1 occurred 
+5: glm.fit: fitted probabilities numerically 0 or 1 occurred 
+6: glm.fit: fitted probabilities numerically 0 or 1 occurred 
+Execution halted
