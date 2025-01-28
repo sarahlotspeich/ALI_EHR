@@ -247,3 +247,98 @@ sim_val_fit = function(id, tpr = 0.95, fpr = 0.05, audit_recovery = 1, val_desig
   # Return results
   return(results)
 }
+
+# Function to simulate data and then SMLE w/ SEs ----------------------------
+sim_val_fit_se = function(id, tpr = 0.95, fpr = 0.05, audit_recovery = 1, val_design) {
+  results = data.frame(sim = id, val_design, 
+                       smle_beta0 = NA, smle_beta1 = NA, smle_beta2 = NA,
+                       smle_beta0_se = NA, smle_beta1_se = NA, smle_beta2_se = NA,
+                       smle_conv_msg = NA, empty_sieve = FALSE, nsieve = NA)
+  
+  # Simulate data 
+  temp = sim_ali_data(tpr = tpr, 
+                      fpr = fpr, 
+                      audit_recovery = audit_recovery)
+  
+  # Setup B-splines
+  B = bs(x = temp$Xstar, ## Error-prone ALI (from EHR)
+         df = nsieve, 
+         Boundary.knots = range(temp$Xstar), 
+         intercept = TRUE)
+  colnames(B) = paste0("bs", seq(1, nsieve))
+  temp = cbind(temp, B)
+  
+  # Wave 1 validation: Draw a BCC* of 52 from (Y, X*) strata
+  ## Stratify X* at the median
+  temp$Xstar_strat = as.numeric(temp$Xstar <= median(temp$Xstar))
+  
+  ## Create Wave 1 validation indicator
+  temp$V1 = sample_bcc(dat = temp,
+                       phI = nrow(temp), 
+                       phII = 52, 
+                       sample_on = c("Y", "Xstar_strat"), 
+                       wave1_Validated = NULL)
+  
+  # Wave 2 validation: Draw remaining 48 from specified design
+  ## Create Wave 2 validation indicator 
+  temp = temp |> 
+    wave2_val(val_design = val_design)
+  
+  # Check that the Wave2 sampling was successful
+  if(!any(is.na(temp$V2))) {
+    # Final validation: Create indicator for Wave 1 *or* Wave 2
+    temp$V = pmax(temp$V1, temp$V2)
+    
+    # Check for empty sieves in B-splines of validated data
+    results[1, "empty_sieve"] = 0 %in% colSums(temp[which(temp$V == 1), colnames(B)])
+    ## If present, decrease number of B-splines one at a time 
+    temp_nsieve = nsieve ### Initialize at current value
+    while(0 %in% colSums(temp[which(temp$V == 1), colnames(B)]) & temp_nsieve >= 5) {
+      ### Decrease number of B-splines by 1
+      temp_nsieve = temp_nsieve - 1
+      
+      ### Delete existing B-splines
+      temp[, grep(pattern = "bs", x = colnames(B), value = TRUE)] = NULL
+      
+      ### Setup new B-splines
+      B = bs(x = temp$Xstar, ## Error-prone ALI (from EHR)
+             df = temp_nsieve, 
+             Boundary.knots = range(temp$Xstar), 
+             intercept = TRUE)
+      colnames(B) = paste0("bs", seq(1, temp_nsieve))
+      temp = cbind(temp, B)
+    }
+    
+    if (!0 %in% colSums(temp[which(temp$V == 1), colnames(B)])) {
+      # Save the number of B-splines used 
+      results[1, "nsieve"] = temp_nsieve
+      
+      # Create Xmiss to be NA if V = 0 (for unvalidated patients)
+      temp = temp |> 
+        mutate(Xmiss = if_else(condition = V == 0, 
+                               true = NA, 
+                               false = Xval))
+      
+      # 1. SMLE analysis
+      fit <- logistic2ph(
+        Y_unval = NULL,
+        Y = "Y",
+        X_unval = "Xstar",
+        X = "Xmiss",
+        Z = "Z",
+        Bspline = colnames(B),
+        data = temp,
+        hn_scale = 1,
+        noSE = FALSE,
+        TOL = 1e-04,
+        MAX_ITER = 1000
+      )
+      results[1, c("smle_beta0", "smle_beta1", "smle_beta2")] = fit$coefficients$Estimate
+      results[1, c("smle_beta0_se", "smle_beta1_se", "smle_beta2_se")] = fit$coefficients$SE
+      results[1, "smle_conv_msg"] = fit$converge
+    }
+  } 
+  
+  # Return results
+  return(results)
+}
