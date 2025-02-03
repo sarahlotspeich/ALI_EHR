@@ -31,18 +31,18 @@ forest = plot_dat |>
   filter(Coefficient == "Association Between Whole Person Health\nand Healthcare Utilization (Adjusting for Age)") |> 
   ggplot(aes(x = Analysis, y = Estimate)) + 
   geom_point(position = position_dodge(width = 0.5), 
-             size = 3, color = cols[3]) + 
+             size = 5, color = cols[3]) + 
   geom_errorbar(aes(ymin = LB, ymax = UB), 
-                linewidth = 1.2, color = cols[3]) + 
-  geom_hline(yintercept = 1, linetype = 2, color = slide_cols[2]) + 
-  scale_color_manual(values = slide_cols[c(1, 2, 5)], 
+                linewidth = 2, color = cols[3]) + 
+  geom_hline(yintercept = 1, linetype = 2, color = cols[2]) + 
+  scale_color_manual(values = cols[c(1, 2, 5)], 
                      name = "Stage of Validation:") + 
   scale_x_discrete(labels = function(x) str_wrap(x, width = 15)) + 
-  theme_minimal(base_size = 14) + 
+  theme_minimal(base_size = 16) + 
   facet_wrap(~Coefficient) + 
   theme(axis.title = element_text(face = "bold"), 
         strip.background = element_rect(fill = "black"),
-        strip.text = element_text(face = "bold", color = "white")) + 
+        strip.text = element_text(face = "bold", color = "white", size = 16)) + 
   xlab("Stage of Validation") + 
   ylab("Odds Ratio (95% Confidence Interval)")
 forest
