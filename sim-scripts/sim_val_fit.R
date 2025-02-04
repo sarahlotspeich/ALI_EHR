@@ -226,21 +226,31 @@ sim_val_fit = function(id, tpr = 0.95, fpr = 0.05, audit_recovery = 1, val_desig
       results[1, c("cc_beta0", "cc_beta1", "cc_beta2")] = coefficients(fit)
       
       # 4. SMLE analysis
-      fit <- logistic2ph(
-        Y_unval = NULL,
-        Y = "Y",
-        X_unval = "Xstar",
-        X = "Xmiss",
-        Z = "Z",
-        Bspline = colnames(B),
-        data = temp,
-        hn_scale = 1,
-        noSE = TRUE,
-        TOL = 1e-04,
-        MAX_ITER = 1000
-      )
-      results[1, c("smle_beta0", "smle_beta1", "smle_beta2")] = fit$coefficients$Estimate
-      results[1, "smle_conv_msg"] = fit$converge
+      # fit <- logistic2ph(
+      #   Y_unval = NULL,
+      #   Y = "Y",
+      #   X_unval = "Xstar",
+      #   X = "Xmiss",
+      #   Z = "Z",
+      #   Bspline = colnames(B),
+      #   data = temp,
+      #   hn_scale = 1,
+      #   noSE = TRUE,
+      #   TOL = 1e-04,
+      #   MAX_ITER = 1000
+      # )
+      fit = logiSieve(
+        analysis_formula = Y ~ Xmiss + Z, 
+        error_formula = paste("Xmiss ~", paste(colnames(B), collapse = "+")), 
+        data = temp, 
+        initial_lr_params = "Zero", 
+        pert_scale = 1, 
+        no_se = FALSE, 
+        tol = 1E-4, 
+        max_iter = 1000, 
+        output = "logORs")
+      results[1, c("smle_beta0", "smle_beta1", "smle_beta2")] = fit$model_coeff$coeff
+      results[1, "smle_conv_msg"] = fit$converged_msg
     }
   } 
   
