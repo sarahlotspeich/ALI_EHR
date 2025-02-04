@@ -27,14 +27,6 @@ val_data = read.csv("~/Documents/Allostatic_load_audits/all_ali_dat.csv") |>
   select(-DATA, -VALIDATED, -starts_with("ALI"), -ANY_ENCOUNTERS, -AGE_AT_ENCOUNTER, -SEX) |> 
   gather(key = "COMPONENT", value = "VAL", -1)
 
-## ALI components after Wave II validation 
-val_data = read.csv("~/Documents/Allostatic_load_audits/all_ali_dat.csv") |> 
-  filter(DATA == "Wave II Validation", 
-         VALIDATED) |> 
-  select(-DATA, -VALIDATED, -starts_with("ALI"), -ANY_ENCOUNTERS, -AGE_AT_ENCOUNTER, -SEX) |> 
-  gather(key = "COMPONENT", value = "VAL", -1) |> 
-  bind_rows(val_data)
-
 ## Merge validated + unvalidated 
 data = val_data |> 
   left_join(unval_data) |> 
@@ -46,14 +38,14 @@ data = val_data |>
                         labels = c("Yes", "No", "Missing"), exclude = NULL))
 
 ## Calculate true positive rate (TPR) = P(UNVAL = 1 | VAL = 1)
-with(data, sum(UNVAL == "Yes" & VAL == "Yes") / sum(VAL == "Yes")) #### 78.7%
+with(data, sum(UNVAL == "Yes" & VAL == "Yes") / sum(VAL == "Yes" & UNVAL != "Missing")) #### 100%
 
 ## Calculate true positive rate (FPR) = P(UNVAL = 1 | VAL = 0)
-with(data, sum(UNVAL == "Yes" & VAL == "No") / sum(VAL == "No")) #### 1.6%
+with(data, sum(UNVAL == "Yes" & VAL == "No") / sum(VAL == "No" & UNVAL != "Missing")) #### <1%
 
 ## Calculate missing data recovery rate 
 ### i.e., percent of missing data from EHR that were nonmissing after validation
-with(data, sum(UNVAL == "Missing" & VAL != "Missing") / sum(UNVAL == "Missing")) #### 21.3% 
+with(data, sum(UNVAL == "Missing" & VAL != "Missing") / sum(UNVAL == "Missing")) #### 27% 
 
 ## Plot boxplot of coefficient estimates
 all_combo = expand.grid(VAL = c("Yes", "No", "Missing"), 
@@ -85,8 +77,8 @@ data |>
         axis.title = element_text(face = "bold"),
         axis.text = element_markdown(),
         legend.title = element_text(face = "bold")) + 
-  labs(x = "Unvalidated Allostatic Load Index (ALI)\nComponent from EHR",
-       y = "Validated Allostatic Load Index (ALI)\nComponent from Chart Review", 
-       title = "B) Comparing Final Validation Data to the EHR")
-ggsave(filename = "~/Documents/ALI_EHR/figures/Fig5b_Final_Heatmap.png",
+  labs(x = "Unvalidated Component from EHR",
+       y = "Validated Component from Chart Review", 
+       title = "A) Pilot + Wave I Validation")
+ggsave(filename = "~/Documents/ALI_EHR/figures/Fig6a_Prelim_Heatmap.png",
        device = "png", width = 8, height = 4, units = "in")

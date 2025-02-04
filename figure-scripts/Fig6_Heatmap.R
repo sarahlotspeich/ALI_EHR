@@ -17,42 +17,50 @@ paper_colors = c("#ff99ff", "#787ff6", "#8bdddb", "#7dd5f6", "#ffbd59")
 ## ALI components before validation
 unval_data = read.csv("~/Documents/Allostatic_load_audits/all_ali_dat.csv") |> 
   filter(DATA == "EHR (Before Validation)") |> 
-  select(-DATA, -VALIDATED, -starts_with("ALI"), -ANY_ENCOUNTERS, -AGE_AT_ENCOUNTER, -SEX) |> 
+  select(-DATA, -VALIDATED, -starts_with("ALI"), 
+         -ANY_ENCOUNTERS, -AGE_AT_ENCOUNTER, -SEX) |> 
   gather(key = "COMPONENT", value = "UNVAL", -1)
 
 ## ALI components after Pilot + Wave I validation 
 val_data = read.csv("~/Documents/Allostatic_load_audits/all_ali_dat.csv") |> 
-  filter(DATA == "Pilot + Wave I Validation", 
-         VALIDATED) |> 
-  select(-DATA, -VALIDATED, -starts_with("ALI"), -ANY_ENCOUNTERS, -AGE_AT_ENCOUNTER, -SEX) |> 
-  gather(key = "COMPONENT", value = "VAL", -1)
+  filter(VALIDATED) |> 
+  select(-VALIDATED, -starts_with("ALI"), 
+         -ANY_ENCOUNTERS, -AGE_AT_ENCOUNTER, -SEX) |> 
+  gather(key = "COMPONENT", value = "VAL", -c(1, 12))
+comb_val_data = val_data |> 
+  mutate(DATA = "All Waves of Validation") |> 
+  bind_rows(val_data)
 
 ## Merge validated + unvalidated 
-data = val_data |> 
+data = comb_val_data |> 
   left_join(unval_data) |> 
   mutate(VAL = factor(x = VAL, 
                       levels = c(1, 0, NA), 
                       labels = c("Yes", "No", "Missing"), exclude = NULL), 
          UNVAL = factor(x = UNVAL, 
                         levels = c(1, 0, NA), 
-                        labels = c("Yes", "No", "Missing"), exclude = NULL))
+                        labels = c("Yes", "No", "Missing"), exclude = NULL), 
+         DATA = factor(x = DATA, 
+                       levels = c("Pilot + Wave I Validation", 
+                                  "Wave II Validation", 
+                                  "All Waves of Validation")))
 
-## Calculate true positive rate (TPR) = P(UNVAL = 1 | VAL = 1)
-with(data, sum(UNVAL == "Yes" & VAL == "Yes") / sum(VAL == "Yes")) #### 76%
-
-## Calculate true positive rate (FPR) = P(UNVAL = 1 | VAL = 0)
-with(data, sum(UNVAL == "Yes" & VAL == "No") / sum(VAL == "No")) #### <1%
-
-## Calculate missing data recovery rate 
-### i.e., percent of missing data from EHR that were nonmissing after validation
-with(data, sum(UNVAL == "Missing" & VAL != "Missing") / sum(UNVAL == "Missing")) #### 27% 
+## Calculate error rates and data recovery
+### True positive rate (TPR) = P(UNVAL = 1 | VAL = 1)
+### False positive rate (FPR) = P(UNVAL = 1 | VAL = 0)
+data |> 
+  group_by(DATA) |> 
+  summarize(TPR = sum(UNVAL == "Yes" & VAL == "Yes") / sum(VAL == "Yes" & UNVAL != "Missing"), 
+            FPR = sum(UNVAL == "Yes" & VAL == "Yes") / sum(VAL == "Yes" & UNVAL != "Missing"), 
+            Recovery = sum(UNVAL == "Missing" & VAL != "Missing") / sum(UNVAL == "Missing"))
 
 ## Plot boxplot of coefficient estimates
-all_combo = expand.grid(VAL = c("Yes", "No", "Missing"), 
+all_combo = expand.grid(DATA = c("Pilot + Wave I Validation", "Wave II Validation", "All Waves of Validation"), 
+                        VAL = c("Yes", "No", "Missing"), 
                         UNVAL = c("Yes", "No", "Missing"))
 
 data |> 
-  group_by(VAL, UNVAL) |> 
+  group_by(DATA, VAL, UNVAL) |> 
   summarize(num = n()) |>
   full_join(all_combo) |> 
   mutate(num = if_else(condition = is.na(num),
@@ -76,9 +84,11 @@ data |>
         title = element_text(face = "bold"),
         axis.title = element_text(face = "bold"),
         axis.text = element_markdown(),
-        legend.title = element_text(face = "bold")) + 
-  labs(x = "Unvalidated Allostatic Load Index (ALI)\nComponent from EHR",
-       y = "Validated Allostatic Load Index (ALI)\nComponent from Chart Review", 
-       title = "A) Comparing Preliminary Validation Data to the EHR")
-ggsave(filename = "~/Documents/ALI_EHR/figures/Fig5a_Prelim_Heatmap.png",
+        legend.title = element_text(face = "bold"), 
+        strip.background = element_rect(fill = "black"), 
+        strip.text = element_text(face = "bold", color = "white")) + 
+  labs(x = "Unvalidated Allostatic Load Index\nComponent (from the EHR)",
+       y = "Validated Allostatic Load Index\nComponent (from Chart Review)") + 
+  facet_wrap(~DATA)
+ggsave(filename = "~/Documents/ALI_EHR/figures/Fig6_Heatmap.png",
        device = "png", width = 8, height = 4, units = "in")
