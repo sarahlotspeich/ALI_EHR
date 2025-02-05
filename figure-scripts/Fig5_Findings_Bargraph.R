@@ -16,7 +16,9 @@ long_audit_dat = dat = read.csv("~/Documents/Allostatic_load_audits/Pilot_First4
   bind_rows(
     read.csv("~/Documents/Allostatic_load_audits/Wave1_Next44_StartingMarch7/wave1_audits_for_analysis.csv")
   ) |> 
-  filter(!(Variable_Name %in% c("HEIGHT", "WEIGHT")))
+  filter(!(Variable_Name %in% c("HEIGHT", "WEIGHT"))) |> 
+  mutate(Audit = "Pilot + Wave I Validation") |> 
+  select(PAT_MRN_ID, Audit, Category, Variable_Name, Finding)
 nrow(long_audit_dat) ## 7605 audited data points 
 table(long_audit_dat$Category) ## 1049 labs, 6556 vitals
 long_audit_dat |> 
@@ -28,7 +30,9 @@ long_audit_dat |>
 # Load data (wave II) -----------------------------------------
 ## Wave II audits 
 long_audit_dat2 = read.csv("~/Documents/Allostatic_load_audits/Wave2_Last48_StartingJune/wave2_audits_for_analysis.csv") |> 
-  filter(!(Variable_Name %in% c("HEIGHT", "WEIGHT")))
+  filter(!(Variable_Name %in% c("HEIGHT", "WEIGHT"))) |> 
+  mutate(Audit = "Wave II Validation") |> 
+  select(PAT_MRN_ID, Audit, Category, Variable_Name, Finding)
 nrow(long_audit_dat2) ## 3867 audited data points 
 table(long_audit_dat2$Category) ## 718 labs, 3149 vitals
 long_audit_dat2 |> 
@@ -36,6 +40,11 @@ long_audit_dat2 |>
   summarize(NUM_AUDITED = dplyr::n()) |> 
   pull(NUM_AUDITED) |> 
   summary() ## min = 16, median = 65.5, max = 453 data points per patient
+
+## All Waves (Pilot + Wave I + Wave II)
+long_audit_dat_all = long_audit_dat |> 
+  bind_rows(long_audit_dat2) |> 
+  mutate(Audit = "All Waves of Validation") 
 
 ## ALI components after wave 1 validation
 order_levels = long_audit_dat |> 
@@ -45,7 +54,9 @@ order_levels = long_audit_dat |>
   pull(Variable_Name)
 
 ## Make bar graph of audit findings for numeric measurements
-plot_a = long_audit_dat |> 
+long_audit_dat |> 
+  bind_rows(long_audit_dat2) |> 
+  bind_rows(long_audit_dat_all) |> 
   mutate(
     COMP = factor(x = Variable_Name, 
                   levels = order_levels, 
@@ -66,8 +77,11 @@ plot_a = long_audit_dat |>
                                 "Extracted Value Not Found", 
                                 "No Auxiliary Information Found",
                                 "Auxiliary Information Found" 
-                                ))
-  ) |> 
+                                )), 
+    Audit = factor(x = Audit, 
+                   levels = c("Pilot + Wave I Validation", 
+                              "Wave II Validation", 
+                              "All Waves of Validation"))) |> 
   ggplot(aes(x = COMP, fill = Finding)) + 
   geom_bar(position="fill") + 
   scale_fill_manual(values = cols, 
@@ -82,9 +96,9 @@ plot_a = long_audit_dat |>
   scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = 8)) +
   scale_y_continuous(labels = scales::percent) + 
   labs(x = "Numeric Measurement in the Allostatic Load Index",
-       y = "Proportion of Validated Measurements", 
-       title = "A) Pilot + Wave I Validation") + 
-  coord_flip()
+       y = "Proportion of Validated Measurements") + 
+  coord_flip() + 
+  facet_wrap(~Audit)
 long_audit_dat |>
   dplyr::group_by(Variable_Name, Finding) |> 
   dplyr::summarize(Num = dplyr::n()) |> 
