@@ -25,26 +25,40 @@ long_audit_dat |>
   pull(NUM_AUDITED) |> 
   summary() ## min = 13, median = 65.5, max = 763 data points per patient
 
+# Load data (wave II) -----------------------------------------
+## Wave II audits 
+long_audit_dat2 = read.csv("~/Documents/Allostatic_load_audits/Wave2_Last48_StartingJune/wave2_audits_for_analysis.csv") |> 
+  filter(!(Variable_Name %in% c("HEIGHT", "WEIGHT")))
+nrow(long_audit_dat2) ## 3867 audited data points 
+table(long_audit_dat2$Category) ## 718 labs, 3149 vitals
+long_audit_dat2 |> 
+  group_by(PAT_MRN_ID) |> 
+  summarize(NUM_AUDITED = dplyr::n()) |> 
+  pull(NUM_AUDITED) |> 
+  summary() ## min = 16, median = 65.5, max = 453 data points per patient
+
 ## ALI components after wave 1 validation
 order_levels = long_audit_dat |> 
   group_by(Variable_Name) |> 
   summarize(num = n()) |> 
   arrange(desc(num)) |> 
   pull(Variable_Name)
-long_audit_dat |> 
+
+## Make bar graph of audit findings for numeric measurements
+plot_a = long_audit_dat |> 
   mutate(
     COMP = factor(x = Variable_Name, 
                   levels = order_levels, 
-                  labels = c("SYSTOLIC BLOOD PRESSURE", 
-                             "DIASTOLIC BLOOD PRESSURE", 
-                             "BODY MASS INDEX", 
-                             "SERUM ALBUMIN", 
-                             "CHOLEST-\nEROL", 
-                             "TRIGLY-\nCERIDES", 
-                             "HEMOGLOBIN A1C", 
-                             "CREATININE CLEARANCE", 
-                             "C-REACTIVE PROTEIN", 
-                             "HOMO-\nCYSTEINE"
+                  labels = c("Systolic Blood Pressure", 
+                             "Diastolic Blood Pressure", 
+                             "Body Mass Index", 
+                             "Serum Albumin", 
+                             "Cholest-\nerol", 
+                             "Trigly-\nceries", 
+                             "Hemoglobin A1C", 
+                             "Creatinine Clearance", 
+                             "C-Reactive Protein", 
+                             "Homo-\ncysteine"
                              )), 
     Finding = factor(x = Finding, 
                      levels = c("Extracted Value Correct", 
@@ -67,9 +81,9 @@ long_audit_dat |>
         legend.position = "right") + 
   scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = 8)) +
   scale_y_continuous(labels = scales::percent) + 
-  labs(x = "Component of the Allostatic Load Index",
+  labs(x = "Numeric Measurement in the Allostatic Load Index",
        y = "Proportion of Validated Measurements", 
-       title = "A) Findings from Pilot + Wave I Validation") + 
+       title = "A) Pilot + Wave I Validation") + 
   coord_flip()
 long_audit_dat |>
   dplyr::group_by(Variable_Name, Finding) |> 
@@ -79,37 +93,21 @@ long_audit_dat |>
   write.csv("~/Documents/Allostatic_load_audits/wave1_findings.csv", 
             row.names = FALSE)
 
-## Save it
-ggsave(filename = "~/Documents/ALI_EHR/figures/bargraph_wave1_audit_findings.png", 
-       device = "png", width = 8, height = 4.5, units = "in")
-
-# Load data ( wave II) -----------------------------------------
-## Wave II audits 
-long_audit_dat2 = read.csv("~/Documents/Allostatic_load_audits/Wave2_Last48_StartingJune/wave2_audits_for_analysis.csv") |> 
-  filter(!(Variable_Name %in% c("HEIGHT", "WEIGHT")))
-nrow(long_audit_dat2) ## 3867 audited data points 
-table(long_audit_dat2$Category) ## 718 labs, 3149 vitals
-long_audit_dat2 |> 
-  group_by(PAT_MRN_ID) |> 
-  summarize(NUM_AUDITED = dplyr::n()) |> 
-  pull(NUM_AUDITED) |> 
-  summary() ## min = 16, median = 65.5, max = 453 data points per patient
-
-## ALI components after wave 1 validation
+## ALI components after wave 2 validation
 long_audit_dat2 |> 
   mutate(
     COMP = factor(x = Variable_Name, 
                   levels = order_levels, 
-                  labels = c("SYSTOLIC BLOOD PRESSURE", 
-                             "DIASTOLIC BLOOD PRESSURE", 
-                             "BODY MASS INDEX", 
-                             "SERUM ALBUMIN", 
-                             "CHOLEST-\nEROL", 
-                             "TRIGLY-\nCERIDES", 
-                             "HEMOGLOBIN A1C", 
-                             "CREATININE CLEARANCE", 
-                             "C-REACTIVE PROTEIN", 
-                             "HOMO-\nCYSTEINE"
+                  labels = c("Systolic Blood Pressure", 
+                             "Diastolic Blood Pressure", 
+                             "Body Mass Index", 
+                             "Serum Albumin", 
+                             "Cholest-\nerol", 
+                             "Trigly-\nceries", 
+                             "Hemoglobin A1C", 
+                             "Creatinine Clearance", 
+                             "C-Reactive Protein", 
+                             "Homo-\ncysteine"
                   )), 
     Finding = factor(x = Finding, 
                      levels = c("Extracted Value Correct", 
@@ -135,11 +133,10 @@ long_audit_dat2 |>
   labs(x = "Component of the Allostatic Load Index",
        y = "Proportion of Validated Measurements", 
        title = "B) Wave II Validation") + 
-       #title = "B) Pilot + Wave I + Wave II Validation") + 
   coord_flip()
 
 ## Save it
-ggsave(filename = "~/Documents/ALI_EHR/figures/bargraph_wave2only_audit_findings.png", 
+ggsave(filename = "~/Documents/ALI_EHR/figures/Fig5B_WaveII_Findings_Bargraph.png", 
        device = "png", width = 8, height = 4.5, units = "in")
 
 ## Read in long audit data (one row per patient per audited variable)
@@ -151,16 +148,16 @@ all_audit_dat |>
   mutate(
     COMP = factor(x = Variable_Name, 
                   levels = order_levels, 
-                  labels = c("SYSTOLIC BLOOD PRESSURE", 
-                             "DIASTOLIC BLOOD PRESSURE", 
-                             "BODY MASS INDEX", 
-                             "SERUM ALBUMIN", 
-                             "CHOLEST-\nEROL", 
-                             "TRIGLY-\nCERIDES", 
-                             "HEMOGLOBIN A1C", 
-                             "CREATININE CLEARANCE", 
-                             "C-REACTIVE PROTEIN", 
-                             "HOMO-\nCYSTEINE"
+                  labels = c("Systolic Blood Pressure", 
+                             "Diastolic Blood Pressure", 
+                             "Body Mass Index", 
+                             "Serum Albumin", 
+                             "Cholest-\nerol", 
+                             "Trigly-\nceries", 
+                             "Hemoglobin A1C", 
+                             "Creatinine Clearance", 
+                             "C-Reactive Protein", 
+                             "Homo-\ncysteine"
                   )), 
     Finding = factor(x = Finding, 
                      levels = c("Extracted Value Correct", 
@@ -184,9 +181,10 @@ all_audit_dat |>
   scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = 8)) +
   scale_y_continuous(labels = scales::percent) + 
   labs(x = "Component of the Allostatic Load Index",
-       y = "Proportion of Validated Measurements") + 
+       y = "Proportion of Validated Measurements", 
+       title = "C) All Waves of Validation") + 
   coord_flip()
 
 ## Save it
-ggsave(filename = "~/Documents/ALI_EHR/figures/bargraph_bothwaves_audit_findings.png", 
+ggsave(filename = "~/Documents/ALI_EHR/figures/Fig5C_Final_Findings_Bargraph.png", 
        device = "png", width = 8, height = 4.5, units = "in")
