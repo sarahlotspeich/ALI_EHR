@@ -30,7 +30,7 @@ sim_res |>
   group_by(tpr, fpr, val_design, smle_conv_msg) |> 
   summarize(num = dplyr::n()) |> 
   ungroup() |> 
-  filter(!smle_conv_msg) |> 
+  filter(smle_conv_msg != "Converged") |> 
   arrange(desc(num))
 
 ## Describe resampling due to empty B-spline sieve
@@ -88,7 +88,7 @@ sim_res |>
   scale_fill_manual(values = paper_colors,
                     name = "Validation\nStudy\nDesign:", 
                     labels = function(x) str_wrap(x, width = 4)) +
-  scale_x_discrete(expand = expand_scale(add = c(1,1))) + 
+  scale_x_discrete(expand = expansion(add = c(1,1))) + 
   theme_minimal(base_size = 14) +
   theme(legend.position = "right",
         title = element_text(face = "bold"),
