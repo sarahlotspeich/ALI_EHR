@@ -25,24 +25,6 @@ sim_res = do.call(what = dplyr::bind_rows,
                   args = lapply(X = paste0(url_stem, designs, ".csv"), 
                                 FUN = read.csv))
 
-## Describe non-convergence due to max iterations reached (<= 1.2% of reps)
-sim_res |> 
-  group_by(tpr, fpr, val_design, smle_conv_msg) |> 
-  summarize(num = dplyr::n()) |> 
-  ungroup() |> 
-  filter(!smle_conv_msg) |> 
-  arrange(desc(num))
-
-## Describe resampling due to empty B-spline sieve
-### This was most common among score function and optimal sample
-sim_res |> 
-  group_by(tpr, fpr, val_design, empty_sieve) |> 
-  summarize(num = dplyr::n(), 
-            median_nsieve = median(nsieve)) |> 
-  ungroup() |> 
-  filter(empty_sieve) |> 
-  arrange(desc(num))
-
 ## Create factor variables 
 sim_res = sim_res |> 
   mutate(error_sett = paste0("TPR = ", round(100 * tpr), "%, FPR = ", round(100 * fpr), "%"), ## Create factor for error setting (TPR, FPR)
