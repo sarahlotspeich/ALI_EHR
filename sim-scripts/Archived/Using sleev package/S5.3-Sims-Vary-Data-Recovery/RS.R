@@ -7,8 +7,7 @@
 # Load packages ----------------------------------------------------------------
 ### RUN ONCE: devtools::install_github("dragontaoran/sleev", ref = "main")
 library(splines) ## for B-splines 
-#library(sleev) ## for SMLE logistic regression
-library(logiSieve) ## for SMLE logistic regression
+library(sleev) ## for SMLE logistic regression
 library(dplyr) ## for data wrangling
 library(pbapply) ## for apply functions with progress bar
 
@@ -20,7 +19,7 @@ source_url("https://raw.githubusercontent.com/sarahlotspeich/ALI_EHR/refs/heads/
 source_url("https://raw.githubusercontent.com/sarahlotspeich/ALI_EHR/refs/heads/main/sim-scripts/sim_val_fit.R")
 
 # Set parameters that won't be varied in the loop ------------------------------
-val_design = "BCC*" ## validation study design
+val_design = "RS" ## validation study design
 N = 1000 ## total sample size
 pV = 0.1 ## proportion of patients to be validated
 nsieve = 16 ## number of B-spline sieves
@@ -39,8 +38,6 @@ for (audit_recovery in c(1, 0.9, 0.5, 0.25, 0)) {
     mutate(prop_recovered = audit_recovery) |> 
     bind_rows(all_recover)
   all_recover |> 
-    write.csv("BCC.csv", 
+    write.csv(paste0(val_design, ".csv"), 
               row.names = FALSE)
-  print(paste("Finished with", 100 * audit_recovery, "% recovery"))
 }
-

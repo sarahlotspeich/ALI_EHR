@@ -7,7 +7,8 @@
 # Load packages ----------------------------------------------------------------
 ### RUN ONCE: devtools::install_github("dragontaoran/sleev", ref = "main")
 library(splines) ## for B-splines 
-library(sleev) ## for SMLE logistic regression
+library(logiSieve) ## for SMLE logistic regression
+#library(sleev) ## for SMLE logistic regression
 library(dplyr) ## for data wrangling
 library(pbapply) ## for apply functions with progress bar
 
@@ -44,4 +45,5 @@ for (s in 1:nrow(error_sett)) {
   all_recover |> 
     write.csv("SRS.csv", 
               row.names = FALSE)
+  print(paste("Finished with error setting", s))
 }
