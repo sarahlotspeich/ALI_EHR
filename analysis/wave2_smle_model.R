@@ -1,5 +1,10 @@
+# Load packages
+library(dplyr) ## for data wrangling
+### RUN ONCE: devtools::install_github("sarahlotspeich/logiSieve", ref = "main")
+library(logiSieve) ## for the SMLEs
+
 # Load data
-## ALI components after Pilot + Wave I validation 
+## ALI components after all waves of validation 
 val_data = read.csv("~/Documents/Allostatic_load_audits/all_ali_dat.csv") |> 
   filter(DATA == "Pilot + Wave I Validation", 
          VALIDATED) |> 
@@ -26,7 +31,7 @@ data = val_data |>
 data = data |> 
   mutate(AGE_AT_ENCOUNTER_10 = (AGE_AT_ENCOUNTER - 18) / 10)
 
-# Estimate parameters using Phase IIa audits + the rest of Phase I -------------
+# Estimate parameters using all audits + the rest of Phase I -------------
 ## Setup B-splines
 B = splines::bs(x = data$ALI_STAR, 
                 df = 16, 
@@ -38,21 +43,10 @@ data = data |>
   bind_cols(B)
 
 ### Fit SMLE model Y ~ X + Z----------------------------------------------------
-### RUN ONCE: devtools::install_github("dragontaoran/sleev", ref = "main")
-library(sleev)
-suppressMessages(fit <- logistic2ph(
-  Y_unval = NULL,
-  Y = "ANY_ENCOUNTERS",
-  X_unval = "ALI_STAR",
-  X = "ALI",
-  Z = "AGE_AT_ENCOUNTER_10",
-  Bspline = colnames(B),
-  data = data,
-  hn_scale = 1,
-  noSE = FALSE,
-  TOL = 1e-04,
-  MAX_ITER = 1000
-))
+fit = logiSieve(
+  analysis_formula = ANY_ENCOUNTERS ~ ALI + AGE_AT_ENCOUNTER_10, 
+  error_formula = paste("ALI ~", paste(colnames(B), collapse = "+")), 
+  data = data)
 
 # Transform log odds ratio for ALI from 1-point to 0.1-point scale
 beta1 = fit$coefficients$Estimate[2] ## original 

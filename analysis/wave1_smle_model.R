@@ -1,7 +1,7 @@
 # Load packages
 library(dplyr) ## for data wrangling
-### RUN ONCE: devtools::install_github("dragontaoran/sleev", ref = "main")
-library(sleev) ## for the SMLE
+### RUN ONCE: devtools::install_github("sarahlotspeich/logiSieve", ref = "main")
+library(logiSieve) ## for the SMLEs
 
 # Load data
 ## ALI components after Pilot + Wave I validation 
@@ -38,19 +38,10 @@ data = data |>
   bind_cols(B)
 
 ### Fit SMLE model Y ~ X + Z----------------------------------------------------
-fit <- logistic2ph(
-  Y_unval = NULL,
-  Y = "ANY_ENCOUNTERS",
-  X_unval = "ALI_STAR",
-  X = "ALI",
-  Z = "AGE_AT_ENCOUNTER_10",
-  Bspline = colnames(B),
-  data = data,
-  hn_scale = 1,
-  noSE = FALSE,
-  TOL = 1e-04,
-  MAX_ITER = 1000
-)
+fit = logiSieve(
+  analysis_formula = ANY_ENCOUNTERS ~ ALI + AGE_AT_ENCOUNTER_10, 
+  error_formula = paste("ALI ~", paste(colnames(B), collapse = "+")), 
+  data = data)
 
 # Transform log odds ratio for ALI from 1-point to 0.1-point scale
 beta1 = fit$coefficients$Estimate[2] ## original 
