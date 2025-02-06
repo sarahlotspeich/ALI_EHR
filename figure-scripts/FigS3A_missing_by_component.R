@@ -50,9 +50,9 @@ num_miss |>
             size = 3, 
             position = position_dodge(width = 1)) + 
   theme_minimal(base_size = 12) + 
-  labs(x = "ALI Component", 
+  labs(x = "Allostatic Load Index Component", 
        y = "Number of Patients", 
-       title = "A) Missingness by Component") +
+       title = "A) Missing Values by Component") +
   theme(title = element_text(face = "bold"), 
         legend.position = "inside", 
         legend.position.inside = c(1, 0.9),
