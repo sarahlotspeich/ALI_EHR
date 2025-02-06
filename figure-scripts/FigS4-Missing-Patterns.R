@@ -13,7 +13,7 @@ summ_data = summ_data |>
          CREAT_C, ALB, BMI, BP_SYSTOLIC, BP_DIASTOLIC, A1C, CHOL, TRIG, CRP, HCST)
 
 ## Plot missingness
-plot = summ_data |> 
+summ_data |> 
   magrittr::set_colnames(c("PAT_MRN_ID", "ANY_ENCOUNTERS", "AGE", "SEX",
                            "CREATININE CLEARANCE",  "SERUM ALBUMIN",
                            "BODY MASS INDEX", "SYSTOLIC BLOOD PRESSURE",
@@ -21,3 +21,7 @@ plot = summ_data |>
                            "TOTAL CHOLESTEROL", "TRIGLYCERIDES",
                            "C-REACTIVE PROTEIN", "HOMOCYSTEINE")) |> 
   gg_miss_upset()
+
+## Save it 
+ggsave(filename = "~/Documents/ALI_EHR/figures/FigS4_Missing_Patterns.png", 
+       device = "png", width = 8, height = 5, units = "in")

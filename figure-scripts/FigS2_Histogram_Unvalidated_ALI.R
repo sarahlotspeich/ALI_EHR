@@ -29,10 +29,10 @@ unval_data |>
   geom_histogram(fill = cols[3], color = "black", bins = 15) + 
   geom_vline(xintercept = 0.333, linetype = 2, color = "black") + 
   theme_minimal(base_size = 12) + 
-  labs(x = "Unvalidated Allostatic Load Index (from the EHR)", 
+  labs(x = "Allostatic Load Index from the EHR (Before Validation)", 
        y = "Number of Patients") +
   theme(title = element_text(face = "bold")) 
 
 ## Save it 
-ggsave(filename = "~/Documents/ALI_EHR/figures/histogram_ali_before_validation.png", 
+ggsave(filename = "~/Documents/ALI_EHR/figures/FigS2_Histogram_Unvalidated_ALI.png", 
        device = "png", width = 8, height = 5, units = "in")
