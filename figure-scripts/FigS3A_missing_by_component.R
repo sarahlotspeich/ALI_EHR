@@ -7,14 +7,16 @@ library(ggplot2) ## for pretty plots
 cols = c("#ff99ff", "#8bdddb", "#787ff6", "#ffbd59", "#7dd5f6")
 
 # Load data
-## ALI components before and after validation (all waves)
-all_data = read.csv("~/Documents/Allostatic_load_audits/all_ali_dat.csv")
+## ALI components before and after validation (waves separately)
+all_data = read.csv("~/Documents/Allostatic_load_audits/all_ali_dat.csv") |> 
+  mutate(DATA = case_when(DATA == "Wave II Validation" ~ "All Waves of Validation", 
+                          .default = DATA))
 
 # Create new dataframe with number of missing values per ALI component
 num_miss = all_data |> 
   group_by(DATA) |> 
   select(-PAT_MRN_ID, -ANY_ENCOUNTERS, -AGE_AT_ENCOUNTER, -SEX, 
-         -starts_with("ALI")) |> 
+         -starts_with("ALI"), -VALIDATED) |> 
   summarize_all(function(x) sum(is.na(x))) |> 
   gather(key = "Variable", value = "Num_Missing", -1)
 
@@ -26,12 +28,17 @@ order_levels = num_miss |>
 num_miss |> 
   mutate(Variable = factor(x = Variable, 
                            levels = order_levels, 
-                           labels = c("CREATININE CLEARANCE", "HOMO-\nCYSTEINE",
-                                      "C-REACTIVE PROTEIN", "HEMOGLOBIN A1C", 
-                                      "CHOLEST-\nEROL", "TRIGLY-\nCERIDES", 
-                                      "SERUM ALBUMIN", "BODY MASS INDEX", 
-                                      "SYSTOLIC BLOOD PRESSURE", 
-                                      "DIASTOLIC BLOOD PRESSURE"))) |> 
+                           labels = c("Creatinine Clearance", "Homo-\ncysteine",
+                                      "C-Reactive Protein", "Hemoglobin A1C", 
+                                      "Cholest-\nerol", "Trigly-\ncerides", 
+                                      "Serum Albumin", "Body Mass Index", 
+                                      "Systolic Blood Pressure", 
+                                      "Diastolic Blood Pressure")), 
+         DATA = factor(x = DATA, 
+                       levels = c("EHR (Before Validation)", 
+                                  "Pilot + Wave I Validation", 
+                                  "Wave II Validation", 
+                                  "All Waves of Validation"))) |> 
   ggplot(aes(x = Variable, 
              y = Num_Missing, 
              fill = DATA)) + 
@@ -45,7 +52,7 @@ num_miss |>
   theme_minimal(base_size = 12) + 
   labs(x = "ALI Component", 
        y = "Number of Patients", 
-       title = "A) Missingness by Component of the Allostatic Load Index (ALI)") +
+       title = "A) Missingness by Component") +
   theme(title = element_text(face = "bold"), 
         legend.position = "inside", 
         legend.position.inside = c(1, 0.9),
@@ -58,5 +65,5 @@ num_miss |>
   scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = 8))
 
 ## Save it 
-ggsave(filename = "~/Documents/ALI_EHR/figures/missing_data_per_component.png", 
+ggsave(filename = "~/Documents/ALI_EHR/figures/FigS3A_missing_by_component.png", 
        device = "png", width = 10, height = 6, units = "in")
