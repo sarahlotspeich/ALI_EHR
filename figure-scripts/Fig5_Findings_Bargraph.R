@@ -72,133 +72,39 @@ long_audit_dat |>
                              "Homo-\ncysteine"
                              )), 
     Finding = factor(x = Finding, 
-                     levels = c("Extracted Value Correct", 
+                     levels = rev(c("Extracted Value Correct", 
                                 "Extracted Value Incorrect", 
                                 "Extracted Value Not Found", 
                                 "No Auxiliary Information Found",
                                 "Auxiliary Information Found" 
-                                )), 
+                                ))), 
     Audit = factor(x = Audit, 
                    levels = c("Pilot + Wave I Validation", 
                               "Wave II Validation", 
                               "All Waves of Validation"))) |> 
   ggplot(aes(x = COMP, fill = Finding)) + 
-  geom_bar(position="fill") + 
-  scale_fill_manual(values = cols, 
-                    name = "Auditor Finding:", 
+  geom_bar(position="fill", color = "black") + 
+  scale_fill_manual(values = rev(cols), 
+                    name = "Auditor\nFinding:", 
                     labels = function(x) stringr::str_wrap(x, width = 5)) + 
+  guides(fill = guide_legend(reverse=TRUE)) + 
   theme_minimal() + 
   theme(legend.title = element_text(face = "bold"),
-        strip.text = element_text(face = "bold"),
+        strip.text = element_text(face = "bold", color = "white"),
+        strip.background = element_rect(fill = "black"),
         axis.title = element_text(face = "bold"),
         title = element_text(face = "bold"),
-        legend.position = "right") + 
+        legend.position = "right", 
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        legend.key.spacing.y = unit(1/2, "cm")) + 
   scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = 8)) +
   scale_y_continuous(labels = scales::percent) + 
-  labs(x = "Numeric Measurement in the Allostatic Load Index",
+  labs(x = "Allostatic Load Index Component",
        y = "Proportion of Validated Measurements") + 
   coord_flip() + 
   facet_wrap(~Audit)
-long_audit_dat |>
-  dplyr::group_by(Variable_Name, Finding) |> 
-  dplyr::summarize(Num = dplyr::n()) |> 
-  dplyr::group_by(Variable_Name) |> 
-  dplyr::mutate(Prop = Num / sum(Num)) |> 
-  write.csv("~/Documents/Allostatic_load_audits/wave1_findings.csv", 
-            row.names = FALSE)
-
-## ALI components after wave 2 validation
-long_audit_dat2 |> 
-  mutate(
-    COMP = factor(x = Variable_Name, 
-                  levels = order_levels, 
-                  labels = c("Systolic Blood Pressure", 
-                             "Diastolic Blood Pressure", 
-                             "Body Mass Index", 
-                             "Serum Albumin", 
-                             "Cholest-\nerol", 
-                             "Trigly-\nceries", 
-                             "Hemoglobin A1C", 
-                             "Creatinine Clearance", 
-                             "C-Reactive Protein", 
-                             "Homo-\ncysteine"
-                  )), 
-    Finding = factor(x = Finding, 
-                     levels = c("Extracted Value Correct", 
-                                "Extracted Value Incorrect", 
-                                "Extracted Value Not Found", 
-                                "No Auxiliary Information Found",
-                                "Auxiliary Information Found" 
-                     ))
-  ) |> 
-  ggplot(aes(x = COMP, fill = Finding)) + 
-  geom_bar(position="fill") + 
-  scale_fill_manual(values = cols, 
-                    name = "Auditor Finding:", 
-                    labels = function(x) stringr::str_wrap(x, width = 5)) + 
-  theme_minimal() + 
-  theme(legend.title = element_text(face = "bold"),
-        strip.text = element_text(face = "bold"),
-        axis.title = element_text(face = "bold"),
-        title = element_text(face = "bold"),
-        legend.position = "right") + 
-  scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = 8)) +
-  scale_y_continuous(labels = scales::percent) + 
-  labs(x = "Component of the Allostatic Load Index",
-       y = "Proportion of Validated Measurements", 
-       title = "B) Wave II Validation") + 
-  coord_flip()
 
 ## Save it
-ggsave(filename = "~/Documents/ALI_EHR/figures/Fig5B_WaveII_Findings_Bargraph.png", 
-       device = "png", width = 8, height = 4.5, units = "in")
-
-## Read in long audit data (one row per patient per audited variable)
-all_audit_dat = long_audit_dat |> 
-  bind_rows(long_audit_dat2)
-
-## ALI components after wave 1 validation
-all_audit_dat |> 
-  mutate(
-    COMP = factor(x = Variable_Name, 
-                  levels = order_levels, 
-                  labels = c("Systolic Blood Pressure", 
-                             "Diastolic Blood Pressure", 
-                             "Body Mass Index", 
-                             "Serum Albumin", 
-                             "Cholest-\nerol", 
-                             "Trigly-\nceries", 
-                             "Hemoglobin A1C", 
-                             "Creatinine Clearance", 
-                             "C-Reactive Protein", 
-                             "Homo-\ncysteine"
-                  )), 
-    Finding = factor(x = Finding, 
-                     levels = c("Extracted Value Correct", 
-                                "Extracted Value Incorrect", 
-                                "Extracted Value Not Found", 
-                                "No Auxiliary Information Found",
-                                "Auxiliary Information Found" 
-                     ))
-  ) |> 
-  ggplot(aes(x = COMP, fill = Finding)) + 
-  geom_bar(position="fill") + 
-  scale_fill_manual(values = cols, 
-                    name = "Auditor Finding:", 
-                    labels = function(x) stringr::str_wrap(x, width = 5)) + 
-  theme_minimal() + 
-  theme(legend.title = element_text(face = "bold"),
-        strip.text = element_text(face = "bold"),
-        axis.title = element_text(face = "bold"),
-        title = element_text(face = "bold"),
-        legend.position = "right") + 
-  scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = 8)) +
-  scale_y_continuous(labels = scales::percent) + 
-  labs(x = "Component of the Allostatic Load Index",
-       y = "Proportion of Validated Measurements", 
-       title = "C) All Waves of Validation") + 
-  coord_flip()
-
-## Save it
-ggsave(filename = "~/Documents/ALI_EHR/figures/Fig5C_Final_Findings_Bargraph.png", 
-       device = "png", width = 8, height = 4.5, units = "in")
+ggsave(filename = "~/Documents/ALI_EHR/figures/Fig5_Findings_Bargraph.png", 
+       device = "png", width = 9, height = 4.5, units = "in")
