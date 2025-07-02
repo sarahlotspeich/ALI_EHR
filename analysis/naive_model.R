@@ -26,9 +26,6 @@ logORs = c(naive_mod$coefficients[1], beta1_t, naive_mod$coefficients[3])
 se_logORS = c(sqrt(diag(vcov(naive_mod)))[1], se_beta1_t, sqrt(diag(vcov(naive_mod)))[3])
 
 # Estimates and 95% confidence intervals for the odds ratios
-## Odds ratios
-exp(logORs)
-## Lower bounds 
-exp(logORs - 1.96 * se_logORS)
-## Upper bounds 
-exp(logORs + 1.96 * se_logORS)
+exp(logORs) ## Odds ratios: 0.251, 1.099, 1.108
+exp(logORs - 1.96 * se_logORS) ## Lower bounds: 0.176, 1.028, 1.000
+exp(logORs + 1.96 * se_logORS) ## Upper bounds: 0.357, 1.175, 1.228
