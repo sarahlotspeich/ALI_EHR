@@ -37,26 +37,27 @@ colnames(B) = paste0("bs", seq(1, 8))
 data = data |> 
   bind_cols(B)
 
-### Fit SMLE model Y ~ X + Z----------------------------------------------------
+## Check for empty B-splines among validated rows 
+colSums(B[which(!is.na(data$ALI)), ]) ### None! 
+
+## Fit SMLE model Y ~ X + Z
 fit = logiSieve(
   analysis_formula = ANY_ENCOUNTERS ~ ALI + AGE_AT_ENCOUNTER_10, 
   error_formula = paste("ALI ~", paste(colnames(B), collapse = "+")), 
-  data = data)
+  data = data, 
+  pert_scale = 1 / 4) #### needed a smaller perturbation since \beta_3 is close to 0 
 
 # Transform log odds ratio for ALI from 1-point to 0.1-point scale
-beta1 = fit$coefficients$Estimate[2] ## original 
+beta1 = fit$model_coeff$coeff[2] ## original 
 beta1_t = beta1 * 0.1 ## transformed
-se_beta1 = fit$coefficients$SE[2] ## original
+se_beta1 = fit$model_coeff$se[2] ## original
 se_beta1_t = se_beta1 * 0.1 ## transformed
 
 # Create vectors of log odds ratios and standard errors
-logORs = c(fit$coefficients$Estimate[1], beta1_t, fit$coefficients$Estimate[3])
-se_logORS = c(fit$coefficients$SE[1], se_beta1_t, fit$coefficients$SE[3])
+logORs = c(fit$model_coeff$coeff[1], beta1_t, fit$model_coeff$coeff[3])
+se_logORS = c(fit$model_coeff$se[1], se_beta1_t, fit$model_coeff$se[3])
 
 # Estimates and 95% confidence intervals for the odds ratios
-## Odds ratios
-exp(logORs)
-## Lower bounds 
-exp(logORs - 1.96 * se_logORS)
-## Upper bounds 
-exp(logORs + 1.96 * se_logORS)
+exp(logORs) ## Odds ratios: 0.173, 1.207, 1.104
+exp(logORs - 1.96 * se_logORS) ## Lower bounds: 0.103, 1.104 1.007 
+exp(logORs + 1.96 * se_logORS) ## Upper bounds: 0.292, 1.319, 1.210
