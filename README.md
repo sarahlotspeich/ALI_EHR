@@ -18,8 +18,6 @@ devtools::install_github("sarahlotspeich/logiSieve", ref = "main")
 devtools::install_github("sarahlotspeich/auditDesignR", ref = "main")
 ```
 
-## Graphical Abstract 
-
 ## Figures 
 
 ### Made in Canva - No data or code
