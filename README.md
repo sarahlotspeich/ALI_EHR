@@ -27,6 +27,7 @@ set.seed(918) ## for reproducibility
 ALI_STAR = rbeta(n = 1000, shape1 = 2, shape2 = 7) ## generate X* = EHR ALI
 ALI = ALI_STAR - rnorm(n = 1000, mean = 0, sd = 0.05) ## generate X = validated ALI
 ALI[ALI < 0] = 0 ## force any values below 0 --> 0
+ALI[1:900] = NA ## make 900 out of 1000 validated ALI missing (no chart review)
 AGE_AT_ENCOUNTER_10 = (rpois(n = 1000, lambda = 45) - 18) / 10 ## generate Z = age at first encounter (centered at 18, in 10-year increments)
 ANY_ENCOUNTERS = rbinom(n = 1000, ## generate Y = healthcare utilization
                         size = 1, 
