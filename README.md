@@ -26,28 +26,28 @@ devtools::install_github("sarahlotspeich/auditDesignR", ref = "main")
 
 **Figure 1.** Diagram of potential errors and missingness in a patient's hemoglobin A1c (HbA1c) measurement in the electronic health record (EHR) before and after validation (chart review). In the top scenario, the patient had HbA1c measured but with error, and the correct value was recovered through validation. In the bottom scenario, the patient did not have HbA1c measured, but auxiliary information was located through validation to replace the missing component.
 
-  - [Figure](figures/ALI-EHR-Flowchart.png)
+  - [Figure](figures/Fig1_ALI_EHR_Flowchart.png)
 
 **Figure 2.** After extracting the electronic health records (EHR) data, partial validation studies break down into three key steps: analysis, design, and protocol. These steps are intertwined, with design choices depending on the planned analysis, and each step provides opportunities to gain information. For added flexibility, a multi-wave validation framework allows us to revisit these key steps and make modifications as information accumulates.
 
-  - [Figure](figures/Full-ALI-EHR-Flowchart-No-Background.png)
+  - [Figure](figures/Fig2_Full_ALI_EHR_Flowchart_No_Background.png)
 
 **Figure 3.** Diagram of partial validation studies with $N$ patients extracted from the electronic health records (EHR) and $n$ patients chosen for validation via chart review. The least informative strategy to select the validation study is **A)** simple random sampling. More informative targeted strategies include **B)** case-control sampling, **C)** balanced case-control sampling using discretized ALI, **D)** optimal stratified sampling using discretized ALI, and **E)** residual sampling based on the naive model. Within strata, the darker shaded areas indicate which patients would be selected.
 
-  -  [Figure](figures/Combined-ALI-Designs.png)
+  -  [Figure](figures/Fig3_Combined_ALI_Designs.png)
 
 **Figure 4.** Flow chart of instructions given to auditors for the chart reviews (Steps 1-3) and the corresponding auditor finding assigned by the analysts (Step 4). Column names refer to those in Supplemental Figure S2.
 
-  -  [Figure](figures/Protocol-Flowchart.png)
+  -  [Figure](figures/Fig4_Protocol_Flowchart.png)
 
 **Figure S1.** Ten component stressors of the allostatic load index were taken across three body systems (cardiovascular, metabolic, and inflammation), discretized at clinically meaningful thresholds, and combined to create a whole-person health score.
 
-  -  [Top Figure](figures/FigS1A-CalcALI-Original.png)
-  -  [Bottom Figure](figures/FigS1B-CalcALI-Disc.png)
+  -  [Top Figure](figures/FigS1A_CalcALI_Original.png)
+  -  [Bottom Figure](figures/FigS1B_CalcALI_Disc.png)
 
 **Figure S2.** Illustrative example of how the original extracted EHR data for patients' vitals were transformed from a wide format (with one row per patient encounter and columns for different variables) to a long format (with one row per patient encounter per variable), merged with the audit roadmap, and augmented with columns where auditors entered their findings. The same was done with patients' lab data.
 
-  -  [Figure](figures/Example-Transform-Data.png)
+  -  [Figure](figures/FigS2_Example_Transform_Data.png)
 
 ## Tables 
 
