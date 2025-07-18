@@ -65,7 +65,7 @@ long_audit_dat |>
                              "Body Mass Index", 
                              "Serum Albumin", 
                              "Cholest-\nerol", 
-                             "Trigly-\nceries", 
+                             "Trigly-\ncerides", 
                              "Hemoglobin A1C", 
                              "Creatinine Clearance", 
                              "C-Reactive Protein", 
