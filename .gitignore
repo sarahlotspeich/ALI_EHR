@@ -6,3 +6,9 @@ sim-scripts/.Rhistory
 .Rhistory
 
 ali_sims_params_cache/latex/
+
+*.rdx
+
+*.rdb
+
+sim-scripts/Archived/ali_sims_params_cache/latex/
