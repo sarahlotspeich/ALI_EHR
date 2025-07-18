@@ -111,8 +111,10 @@ devtools::install_github("sarahlotspeich/auditDesignR", ref = "main")
 
 ## Tables 
 
-**Table 1.** Simulation results under increasing severity of errors in straight-line proximity to healthy foods, as controlled by the error standard deviation $\sigma_U$.
+**Table S1.** Auditors' findings from $52$ patients' data in the *Pilot + Wave I Validation* and $48$ patients' data in the *Wave II Validation*. These findings refer to the original numeric lab and vitals measurements (before discretizing them into allostatic load index components), and there could be multiple per patient per variable. The number of validated data points per variable is denoted by $n$.
 
-  - [Script (Run Simulations Locally)](sims-scripts/sims_vary_sigmaU.R)
-  - [Script (Make Table)](table-scripts/table1_vary_sigmaU.R)
-  - [Data (Simulation Results)](sims-data/vary_sigmaU_sims_combined.csv)
+  - [Script (Make Table)](table-scripts/TableS1-Findings-by-Wave.R)
+
+**Table S2.** Combined auditors' findings from $100$ patients' data reviewed in any wave of validation (Pilot, Wave I, or Wave II). These findings refer to the original numeric lab and vitals measurements (before discretizing them into allostatic load index components), and there could be multiple per patient per variable. The number of validated data points per variable is denoted by $n$.
+
+  - [Script (Make Table)](table-scripts/TableS2-Findings-Combined.R)
