@@ -49,6 +49,68 @@ devtools::install_github("sarahlotspeich/auditDesignR", ref = "main")
 
   -  [Figure](figures/FigS2_Example_Transform_Data.png)
 
+### Made in R - Data (where shareable) and code
+
+**Figure 5.** Auditors' findings from the validation of **A)** $52$ patients' data in the Pilot + Wave I, **B)** $48$ patients' data in  Wave II, and **C)** $100$ patients' data in all waves combined. These findings refer to the original numeric measurements (before discretizing them into allostatic load index components), and there could be multiple per patient per variable. Auditor findings were mutually exclusive and specific to whether the measurements were originally *non-missing* ("extracted value correct," "extracted value incorrect," or "extracted value not found") or *missing* ("no auxiliary information found" or "auxiliary information found") in the extracted EHR data.
+
+  -  [Figure](figures/Fig5_Findings_Bargraph.png)
+  -  [Script (Make Figure)](figure-scripts/Fig5_Findings_Bargraph.R)
+
+**Figure 6.** Comparison of the discretized allostatic load index components from the unvalidated EHR data to **A)** $52$ patients' data in the Pilot + Wave I, **B)** $48$ patients' data in  Wave II, and **C)** $100$ patients' data in all waves combined.
+
+  -  [Figure](figures/Fig6_Heatmap.png)
+  -  [Script (Make Figure)](figure-scripts/Fig6_Heatmap.R)
+
+**Figure 7.** Among patients with chart reviews (triangles), validated allostatic load index (ALI) could differ noticeably from the unvalidated version using the EHR data. For patients without chart reviews (squares), validated ALI could be robustly predicted using the estimated exposure error mechanism. The dashed line indicates the line of equality (i.e., where unvalidated and validated ALI are the same). The solid line is a loess smoother.
+
+  -  [Figure](figures/Fig7_Scatterplot_PredictedALI.png)
+  -  [Script (Make Figure)](figure-scripts/Fig7_Scatterplot_PredictedALI.R)
+
+**Figure S3.** Based on the original extracted EHR data (before validation), the distribution of the error-prone allostatic load index (ALI) was right-skewed with a median of $0.33$ (denoted by the vertical dashed line) and an interquartile range of $(0.17, 0.50)$.
+
+  -  [Figure](figures/FigS3_Histogram_Unvalidated_ALI.png)
+  -  [Script (Make Figure)](figure-scripts/FigS3_Histogram_Unvalidated_ALI.R)
+
+**Figure S4.** Missingness in the discretized allostatic load index (ALI) components in the extracted EHR data (before validation), after the Pilot + Wave I validation, and after all waves of validation. In **A)**, missingness is broken down by the ALI component, and in **B)**, it is broken down by the number of missing ALI components per patient.
+
+  -  [Top Figure](figures/FigS4A_missing_by_component.png)
+  -  [Script (Make Top Figure)](figure-scripts/FigS4A_missing_by_component.R)
+  -  [Bottom Figure](figures/FigS4B_missing_by_patient.png)
+  -  [Script (Make Bottom Figure)](figure-scripts/FigS4B_missing_by_patient.R)
+
+**Figure S5.** Most common patterns of missing data in the components of the allostatic load index across $N = 1000$ patients in the extracted EHR data. For example, $432$ patients were missing C-reactive protein, homocysteine, and creatinine clearance. This plot was created using the `naniar` package.
+
+  -  [Figure](figures/FigS5_Missingness_Patterns.png)
+  -  [Script (Make Figure)](figure-scripts/FigS5_Missingness_Patterns.R)
+
+**Figure S6.** In simulations, the SMLE for the adjusted log odds ratio on ALI was empirically unbiased (i.e., close to the truth of $\beta_1 = 1.88$, denoted by the dashed line) under varied error rates and different validation study designs. Five designs were considered: (i) simple random sampling (SRS), (ii) case-control sampling (CC) on $Y$, (iii) balanced case-control (BCC) and (iv) optimal (OPT) sampling on $Y$ and $X^*$ (discretized at the median), and (v) residual sampling (RS).
+
+  - [Figure](figures/FigS6_Errors_logOR_Boxplot.png) 
+  - [Script (Run Simulations)](sim-scripts/S5.2-Sims-Vary-Error-Rates/)
+  - [Data (Simulation Results)](sims-data/S5.2-Sims-Vary-Error-Rates/)
+  - [Script (Make Figure)](figure-scripts/FigS6-Errors-Bias-Boxplot.R)
+
+**Figure S7.** In simulations, the targeted validation study designs offered higher efficiency (i.e., smaller variance) for the SMLE log odds ratio estimates on ALI than simple random sampling (SRS) under varied error rates. Four targeted designs were considered: (i) case-control sampling (CC) on $Y$, (ii) balanced case-control (BCC) and (iii) optimal (OPT) sampling on $Y$ and $X^*$ (discretized at the median), and (iv) residual sampling (RS).
+
+  - [Figure](figures/FigS7_Errors_RE_Linegraph.png) 
+  - [Script (Run Simulations)](sim-scripts/S5.2-Sims-Vary-Error-Rates/)
+  - [Data (Simulation Results)](sims-data/S5.2-Sims-Vary-Error-Rates/)
+  - [Script (Make Figure)](figure-scripts/FigS7-Errors-RE-Lineplot.R)
+
+**Figure S8.** In simulations, the SMLE for the adjusted log odds ratio on $X$ was empirically unbiased (i.e., close to the truth of $\beta_1 = 1.88$, denoted by the dashed line) under full/high data recovery rates and different validation study designs. Still, it was closer to the truth for moderate recovery or lower than the naive analysis (i.e., based on the unvalidated EHR data, denoted by the dotted line). Five designs were considered: (i) simple random sampling (SRS), (ii) case-control sampling (CC) on $Y$, (iii) balanced case-control (BCC) and (iv) optimal (OPT) sampling on $Y$ and $X^*$ (discretized at the median), and (v) residual sampling (RS).
+
+  - [Figure](figures/FigS8_Recovery_logOR_Boxplot.png) 
+  - [Script (Run Simulations)](sim-scripts/S5.3-Sims-Vary-Data-Recovery/)
+  - [Data (Simulation Results)](sims-data/S5.3-Sims-Vary-Data-Recovery/)
+  - [Script (Make Figure)](figure-scripts/FigS8-Recovery-Bias-Boxplot.R)
+
+**Figure S9.** In simulations, the targeted validation study designs offered higher efficiency (i.e., smaller variance) for the SMLE log odds ratio estimates than simple random sampling (SRS) under varied data recovery rates. Four targeted designs were considered: (i) case-control sampling (CC) on $Y$, (ii) balanced case-control (BCC) and (iii) optimal (OPT) sampling on $Y$ and $X^*$ (discretized at the median), and (iv) residual sampling (RS).
+
+  - [Figure](figures/FigS9-Recovery-RE-Lineplot.png) 
+  - [Script (Run Simulations)](sim-scripts/S5.3-Sims-Vary-Data-Recovery/)
+  - [Data (Simulation Results)](sims-data/S5.3-Sims-Vary-Data-Recovery/)
+  - [Script (Make Figure)](figure-scripts/FigS9-Recovery-RE-Lineplot.R)
+
 ## Tables 
 
 **Table 1.** Simulation results under increasing severity of errors in straight-line proximity to healthy foods, as controlled by the error standard deviation $\sigma_U$.
@@ -56,138 +118,3 @@ devtools::install_github("sarahlotspeich/auditDesignR", ref = "main")
   - [Script (Run Simulations Locally)](sims-scripts/sims_vary_sigmaU.R)
   - [Script (Make Table)](table-scripts/table1_vary_sigmaU.R)
   - [Data (Simulation Results)](sims-data/vary_sigmaU_sims_combined.csv)
-
-**Table 2.** Simulation results under increasing proportion of neighborhoods queried to obtain map-based proximity to healthy foods, as controlled by $p_V$.
-
-  - [Script (Run Simulations Locally)](sims-scripts/sims_vary_pV.R)
-  - [Script (Make Table)](table-scripts/table2_vary_pV.R)
-  - [Data (Simulation Results)](sims-data/vary_pV_sims_combined.csv)
-
-**Table 3.** Simulation results under higher disease prevalence and prevalence ratios for map-based proximity to healthy foods, as controlled by the coefficients $\beta_0$ and $\beta_1$, respectively.
-
-  - [Script (Run Simulations Locally)](sims-scripts/sims_vary_prev.R)
-  - [Script (Make Table)](table-scripts/table3_vary_prev.R)
-  - [Data (Simulation Results)](sims-data/vary_prev_sims_combined.csv)
-
-**Table 4.** Simulation results under increasingly severe multiplicative errors in straight-line proximity to healthy foods, as controlled by the max of the error distribution $\tau_W$. 
-
-  - [Script (Run Simulations Locally)](sims-scripts/sims_mult_error.R)
-  - [Script (Make Table)](table-scripts/table4_mult_error.R)
-  - [Data (Simulation Results)](sims-data/mult_error_sims_combined.csv)
-
-**Table S1.** Simulation results under varied additive errors in straight-line proximity to healthy foods, as controlled by the mean $\mu_U$ of the errors $U$. The standard deviation $\sigma_U = 0.8$ of the errors was fixed.
-
-  - [Script (Run Simulations Locally)](sims-scripts/sims_vary_muU.R)
-  - [Script (Make Table)](table-scripts/tableS1_vary_muU.R)
-  - [Data (Simulation Results)](sims-data/vary_muU/)
-
-**Table S2.** Simulation results under varied multiplicative errors in straight-line proximity to healthy foods, as controlled by the mean $\mu_W$ of the errors $W$. The standard deviation $\sigma_W = 0.15$ of the errors was fixed.
-
-  - [Script (Run Simulations Locally)](sims-scripts/sims_mult_error2.R)
-  - [Script (Make Table)](table-scripts/tableS2_mult_errors2.R)
-  - [Data (Simulation Results)](sims-data/mult_error2/)
-
-**Table S3.** Descriptive statistics of the $N = 387$ census tracts in the Piedmont Triad, North Carolina.
-
-  - [Script (Make Table)](table-scripts/tableS3_piedmont.R)
-  - [Data (Food Access + Health + RUCA)](piedmont-triad-data/analysis_data.csv)
-
-**Table S4.** Simulation results for the mixed-effects model under additive errors in straight-line proximity to healthy foods, with fixed $\mu_U = -0.7$ and $\sigma_U = 0.8$, and different amounts of variability in the spatial random effect, as controlled by $\tau^2$. 
-
-  - [Script (Run Simulations Locally)](sims-scripts/sims_spatial.R)
-  - [Script (Make Table)](table-scripts/tableS4_spatial_vary_tau2.R)
-  - [Data (Simulation Results)](sims-data/spatial/)
-
-## Figures 
-
-**Figure 2.** Choropleth maps of the crude prevalence of diagnosed diabetes and obesity for census tracts in the Piedmont Triad, North Carolina.
-
-  - [Figure](figures/fig2_map_piedmont_triad_health_outcomes.png)
-  - [Data (PLACES)](piedmont-triad-data/disease_prevalences_2022.csv)
-  - [Script (Make Figure)](figure-scripts/fig2_map_piedmont_triad_health_outcomes.R)
-
-**Figure 3.** Scatter plot of straight-line versus map-based proximity to healthy foods store for neighborhoods in the Piedmont Triad, North Carolina using the fully-queried data ($N = 387$).
-
-  - [Figure](figures/fig3_scatterplot_proximity_piedmont.png)
-  - [Data (Food Access + Health + RUCA)](piedmont-triad-data/analysis_data.csv)
-  - [Script (Make Figure)](figure-scripts/fig3_scatterplot_proximity_piedmont.R)
-
-**Figure 4.** Estimated prevalence ratios (with 95\% confidence intervals) for proximity to healthy foods, metropolitan status, and their interaction with the two health outcomes in the Piedmont Triad, North Carolina using four different analysis methods. Within each health outcome and method, estimates on the right with the dashed error bars came from the mixed effects model allowing for spatial autocorrelation between neighboring census tracts; estimates on the left with the solid error bars came from the non-spatial model assuming independence between tracts.
-
-  - [Figure](figures/fig4_forest_plot_piedmont.png)
-  - [Data (Food Access + Health + RUCA)](piedmont-triad-data/analysis_data.csv)
-  - [Data (Fitted Models)](piedmont-triad-data/forest_plot_data.csv) 
-  - [Script (Make Figure)](figure-scripts/fig4_forest_plot_piedmont.R)
-
-**Figure S1.** Straight-line and map-based distances from Reynolda House (square symbol) to a nearby Food Lion grocery store (triangle symbol) in Winston-Salem, North Carolina.
-
-  - [Figure](figures/figS1_map_comparing_distances.png)
-  - [Script (Make Figure)](figure-scripts/figS1_map_comparing_distances.R)
-
-**Figure S2.** Line graph of the cumulative computing time (in seconds) for the map-based versus straight-line distance calculations in the Piedmont Triad data.
-
-  - [Figure](figures/figS2_cum_comp_time_line.png) 
-  - [Data (Food Access + Health + RUCA)](piedmont-triad-data/analysis_data.csv)
-  - [Script (Make Figure)](figure-scripts/figS2_cum_comp_time_line.R)
-
-**Figure S3.** Estimated prevalence ratios for map-based food access $X$ on health using multiple imputation. The five possible ways to include the analysis model outcome $Y$ (with or without the model offset $Pop$) in the imputation model for $X$ were considered.
-
-  - [Figure](figures/figS3_incl_in_imputation_model_PR.png) 
-  - [Script (Run Simulations Locally)](sims-scripts/sims_incl_outcome.R)
-  - [Data (Simulation Results)](sims-data/include_outcome/)
-  - [Script (Make Figure)](figure-scripts/figS3_inclY_in_imputation_model.R)
-
-**Figure S4.** Map of the $100$ North Carolina counties, colored by whether they belong to the Piedmont Triad ($n = 12$), border the Piedmont Triad ($n = 12$), or fall into the rest of the state ($n = 76$).
-
-  - [Figure](figures/figS4_map_piedmont_triad.pdf)
-  - [Script (Make Figure)](figure-scripts/figS4_map_piedmont_triad.R)
-
-**Figure S5.** Choropleth maps of socioeconomic factors across the census tracts of the Piedmont Triad, North Carolina. Data were taken from the 2015 American Community Survey. The gradient for each map is centered at the state median. Two census tracts were missing median family income. All other maps are based on $N = 387$ census tracts. The one census tract with zero population was excluded.
-
-  - [Figure](figures/figS5_map_piedmont_triad_acs_data.png)
-  - [Data (RUCA)](piedmont-triad-data/ruca2010revised.csv)
-  - [Data (ACS)](piedmont-triad-data/piedmont_triad_acs_data.csv)
-  - [Script (Make Figure)](figure-scripts/figS5_map_piedmont_triad_acs_data.R)
-
-**Figure S6.** Choropleth maps of percents of census tract population by self-reported race in the Piedmont Triad, North Carolina. Data were taken from the 2015 American Community Survey. The gradient for each map is centered at the state median. All maps are based on $N = 387$ census tracts. The one census tract with zero population was excluded.
-
-  - [Figure](figures/figS4_map_piedmont_triad_acs_data.png)
-  - [Data (ACS)](piedmont-triad-data/piedmont_triad_acs_data.csv)
-  - [Script (Make Figure)](figure-scripts/figS6_map_piedmont_triad_acs_race_data.R)
-
-**Figure S7.** Map of $M = 701$ authorized SNAP retailers in the Piedmont Triad, North Carolina, broken down by store type. Data were taken from the 2022 Historical SNAP Retail Locator Data.
-
-  - [Figure](figures/figS7_map_piedmont_triad_SNAP_wide.png)
-  - [Data (SNAP)](piedmont-triad-data/healthy_foods_stores_2022.csv)
-  - [Script (Make Figure)](figures/figS7_map_SNAP.R)
-
-**Figure S8.** Map of census tracts in the Piedmont Triad, North Carolina, colored according to whether it was treated as queried in the partially queried analysis. For the partially queried analysis, $n = 48$ tracts were chosen to be queried via county-stratified random sampling. The thicker boundaries denote outline the $12$ counties.
-
-  - [Figure](figures/figS8_map_piedmont_queried.png) 
-  - [Data (Food Access + Health + RUCA)](piedmont-triad-data/analysis_data.csv)
-  - [Script (Make Figure)](figure-scripts/figS8_map_piedmont_queried.R)
-
-**Figure S9.** Choropleth maps of the crude prevalence of adverse health outcomes for census tracts in Forsyth County (top row) and Guilford County (bottom row), North Carolina. The triangles denote "downtown"  Winston-Salem and Greensboro (represented by their City Halls) in the top and bottom row, respectively. The gradient for each map is centered at the state median. Data were taken from the 2022 PLACES dataset.
-
-  - [Figure](figures/figS9_map_forsyth_guilford_health_outcomes.png)
-  - [Data (PLACES)](piedmont-triad-data/disease_prevalences_2022.csv)
-  - [Script (Make Figure)](figure-scripts/figS7_map_forsyth_guilford_health_outcomes.R)
-
-**Figure S10.** Scatter plot of straight-line versus map-based proximity to healthy food store for neighborhoods (census tracts) in the Piedmont Triad, North Carolina using the fully queried data ($N = 387$) or the partially queried data ($n = 48$). The top row is among only metropolitan census tracts, and the bottom row is only among non-metropolitan census tracts. The solid line follows the fitted least-squares linear regression fit between $X$ and $X ^ {\ast}$ among those tracts, while the dashed line denotes the hypothetical $X = X^{\ast}$ if there had been no errors in $X^{\ast}$.
-
-  - [Figure](figS10_scatterplot_proximity_piedmont_metro.pdf)
-  - [Data (Food Access + Health + RUCA)](piedmont-triad-data/analysis_data.csv)
-  - [Script (Make Figure)](figure-scripts/figS10_scatterplot_proximity_piedmont_metro.R)
-
-**Figure S11.** Histogram of additive errors ($U$) and multiplicative errors ($W$) in straight-line proximity to healthy foods ($X^*$) from the fully queried data ($N = 387$) for the Piedmont Triad, North Carolina.
-
-  - [Figure](figures/figS11_histogram_errors_piedmont.png)
-  - [Data (Food Access + Health + RUCA)](piedmont-triad-data/analysis_data.csv)
-  - [Script (Make Figure)](figure-scripts/figS11_histogram_errors_proximity.R)
-
-**Figure S12.** Estimated baseline prevalence (with 95\% confidence intervals) for health outcomes in the Piedmont Triad, North Carolina using different analysis methods. Within each health outcome and method, estimates on the right came from the mixed effects model allowing for spatial autocorrelation between bordering neighborhoods (census tracts); estimates on the left came from the model assuming independence between neighborhoods.
-
-  - [Figure](figures/figS12_forest_plot_intercept_piedmont.png)
-  - [Data (Food Access + Health)](piedmont-triad-data/analysis_data.csv)
-  - [Data (Fitted Models)](piedmont-triad-data/forest_plot_data.csv) 
-  - [Script (Make Figure)](figure-scripts/figS12_forest_plot_intercept_piedmont.R)
