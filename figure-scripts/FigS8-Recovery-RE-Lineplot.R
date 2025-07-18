@@ -83,7 +83,6 @@ sim_res |>
   theme(legend.position = "right",
         title = element_text(face = "bold"),
         axis.title = element_text(face = "bold"),
-        axis.text = element_markdown(),
         legend.title = element_text(face = "bold")) + 
   labs(x = "Recovery Rate for Missing Allostatic Load Index (ALI) Components in the EHR",
        #y = "Relative Efficiency (to Simple Random Sampling)",
