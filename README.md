@@ -1,6 +1,6 @@
 # Overcoming data challenges with enriched validation and targeted sampling to measure whole-person health in electronic health records
 
-This repository contains `R` code and simulation data to reproduce results from the manuscript by [Lotspeich et al. (2025+)](https://arxiv.org/abs/2502.05380). *Please note that due to the sensitive information of our application to the learning health system, we cannot share patient data to replicate the real-data analysis.*
+This repository contains `R` code and simulation data to reproduce results from the manuscript by [Lotspeich et al. (2025+)](https://arxiv.org/abs/2502.05380). 
 
 This code relies on two `R` packages developed to accompany the paper, among other standard packages available from CRAN.  
   
@@ -17,6 +17,28 @@ devtools::install_github("sarahlotspeich/logiSieve", ref = "main")
 ``` r
 devtools::install_github("sarahlotspeich/auditDesignR", ref = "main")
 ```
+
+## Analysis 
+
+Please note that due to the sensitive information of our application to the learning health system, we cannot share patient data to replicate the real-data analysis. We are happy to share the code here, and a mock (simulated) dataset with the necessary columns to run the code can be created with the following:
+
+``` r
+set.seed(918) ## for reproducibility
+ALI_STAR = rbeta(n = 1000, shape1 = 2, shape2 = 7) ## generate X* = EHR ALI
+ALI = ALI_STAR - rnorm(n = 1000, mean = 0, sd = 0.05) ## generate X = validated ALI
+ALI[ALI < 0] = 0 ## force any values below 0 --> 0
+AGE_AT_ENCOUNTER_10 = (rpois(n = 1000, lambda = 45) - 18) / 10 ## generate Z = age at first encounter (centered at 18, in 10-year increments)
+ANY_ENCOUNTERS = rbinom(n = 1000, ## generate Y = healthcare utilization
+                        size = 1, 
+                        prob = 1 / (1 + exp(- (log(0.23) + log(1.12) * ALI) + log(1.11) * AGE_AT_ENCOUNTER_10)))
+data = data.frame(ALI_STAR, ALI, AGE_AT_ENCOUNTER_10, ANY_ENCOUNTERS)
+```
+
+Then, you should be able to run the following `R` scripts to fit the healthcare utilization models. Please note: These are simulated data, so the estimates will not agree with those published in the manuscript. 
+
+  -  [Naive analysis](analysis/naive_model.R)
+  -  [Preliminary SMLEs](analysis/wave1_smle_model.R)
+  -  [Final SMLEs](analysis/wave2_smle_model.R)
 
 ## Figures 
 
