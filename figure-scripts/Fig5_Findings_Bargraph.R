@@ -88,7 +88,7 @@ long_audit_dat |>
                     name = "Auditor\nFinding:", 
                     labels = function(x) stringr::str_wrap(x, width = 5)) + 
   guides(fill = guide_legend(reverse=TRUE)) + 
-  theme_minimal() + 
+  theme_minimal(base_size = 14) + 
   theme(legend.title = element_text(face = "bold"),
         strip.text = element_text(face = "bold", color = "white"),
         strip.background = element_rect(fill = "black"),
@@ -107,4 +107,4 @@ long_audit_dat |>
 
 ## Save it
 ggsave(filename = "~/Documents/ALI_EHR/figures/Fig5_Findings_Bargraph.png", 
-       device = "png", width = 9, height = 4.5, units = "in")
+       device = "png", width = 10, height = 6, units = "in")
