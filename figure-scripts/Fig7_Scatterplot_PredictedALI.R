@@ -77,5 +77,5 @@ data |>
         legend.title = element_text(face = "bold")) + 
   labs(x = "Unvalidated Allostatic Load Index\n(from the EHR)",
        y = "Validated Allostatic Load Index\n(from Chart Reviews / Predictions)")
-ggsave(filename = "~/Documents/ALI_EHR/figures/FigS6_Scatterplot_PredictedALI.png",
+ggsave(filename = "~/Documents/ALI_EHR/figures/Fig7_Scatterplot_PredictedALI.png",
        device = "png", width = 8, height = 5, units = "in")
