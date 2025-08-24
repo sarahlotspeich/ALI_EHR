@@ -15,14 +15,14 @@ paper_colors = c("#ff99ff", "#787ff6", "#8bdddb", "#7dd5f6", "#ffbd59")
 
 # Load data
 ## ALI components before validation
-unval_data = read.csv("~/Documents/Allostatic_load_audits/all_ali_dat.csv") |> 
+unval_data = read.csv("~/Documents/ALI_EHR/analysis/patient-data/all_ali_dat.csv") |> 
   filter(DATA == "EHR (Before Validation)") |> 
   select(-DATA, -VALIDATED, -starts_with("ALI"), 
          -ANY_ENCOUNTERS, -AGE_AT_ENCOUNTER, -SEX) |> 
   gather(key = "COMPONENT", value = "UNVAL", -1)
 
-## ALI components after Pilot + Wave I validation 
-val_data = read.csv("~/Documents/Allostatic_load_audits/all_ali_dat.csv") |> 
+## ALI components after Pilot and Wave I validation 
+val_data = read.csv("~/Documents/ALI_EHR/analysis/patient-data/all_ali_dat.csv") |> 
   filter(VALIDATED) |> 
   select(-VALIDATED, -starts_with("ALI"), 
          -ANY_ENCOUNTERS, -AGE_AT_ENCOUNTER, -SEX) |> 
@@ -43,6 +43,9 @@ data = comb_val_data |>
          DATA = factor(x = DATA, 
                        levels = c("Pilot + Wave I Validation", 
                                   "Wave II Validation", 
+                                  "All Waves of Validation"), 
+                       labels = c("Pilot and Wave I Validation", 
+                                  "Wave II Validation", 
                                   "All Waves of Validation")))
 
 ## Calculate error rates and data recovery
@@ -55,7 +58,9 @@ data |>
             Recovery = sum(UNVAL == "Missing" & VAL != "Missing") / sum(UNVAL == "Missing"))
 
 ## Plot boxplot of coefficient estimates
-all_combo = expand.grid(DATA = c("Pilot + Wave I Validation", "Wave II Validation", "All Waves of Validation"), 
+all_combo = expand.grid(DATA = c("Pilot and Wave I Validation", 
+                                 "Wave II Validation", 
+                                 "All Waves of Validation"), 
                         VAL = c("Yes", "No", "Missing"), 
                         UNVAL = c("Yes", "No", "Missing"))
 
