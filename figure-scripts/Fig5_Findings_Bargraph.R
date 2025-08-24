@@ -7,17 +7,17 @@ cols = c("#ff99ff", "#8bdddb", "#787ff6", "#ffbd59", "#7dd5f6")
 
 # Load data (wave I + pilot) ---------------------------------------------------
 ## Read in long audit data (one row per patient per audited variable)
-long_audit_dat = dat = read.csv("~/Documents/Allostatic_load_audits/Pilot_First4/pilot_audits_for_analysis.csv") |> 
+long_audit_dat = dat = read.csv("~/Documents/ALI_EHR/analysis/patient-data/pilot_audits_for_analysis.csv") |> 
   select(-contains("Rabeya"), -contains("Aidan"), -contains("Amelia")) |> 
   rename(Reviewed_Value = Reviewed_Value_Sheetal, 
          Reviewed_Value_Num = Reviewed_Value_Sheetal_Num, 
          Notes = Notes_Sheetal, 
          Finding = Finding_Sheetal) |> 
   bind_rows(
-    read.csv("~/Documents/Allostatic_load_audits/Wave1_Next44_StartingMarch7/wave1_audits_for_analysis.csv")
+    read.csv("~/Documents/ALI_EHR/analysis/patient-data/wave1_audits_for_analysis.csv")
   ) |> 
   filter(!(Variable_Name %in% c("HEIGHT", "WEIGHT"))) |> 
-  mutate(Audit = "Pilot + Wave I Validation") |> 
+  mutate(Audit = "Pilot and Wave I Validation") |> 
   select(PAT_MRN_ID, Audit, Category, Variable_Name, Finding)
 nrow(long_audit_dat) ## 7605 audited data points 
 table(long_audit_dat$Category) ## 1049 labs, 6556 vitals
@@ -29,7 +29,7 @@ long_audit_dat |>
 
 # Load data (wave II) -----------------------------------------
 ## Wave II audits 
-long_audit_dat2 = read.csv("~/Documents/Allostatic_load_audits/Wave2_Last48_StartingJune/wave2_audits_for_analysis.csv") |> 
+long_audit_dat2 = read.csv("~/Documents/ALI_EHR/analysis/patient-data/wave2_audits_for_analysis.csv") |> 
   filter(!(Variable_Name %in% c("HEIGHT", "WEIGHT"))) |> 
   mutate(Audit = "Wave II Validation") |> 
   select(PAT_MRN_ID, Audit, Category, Variable_Name, Finding)
@@ -41,7 +41,7 @@ long_audit_dat2 |>
   pull(NUM_AUDITED) |> 
   summary() ## min = 16, median = 65.5, max = 453 data points per patient
 
-## All Waves (Pilot + Wave I + Wave II)
+## All Waves (Pilot and Wave I + Wave II)
 long_audit_dat_all = long_audit_dat |> 
   bind_rows(long_audit_dat2) |> 
   mutate(Audit = "All Waves of Validation") 
@@ -79,7 +79,7 @@ long_audit_dat |>
                                 "Auxiliary Information Found" 
                                 ))), 
     Audit = factor(x = Audit, 
-                   levels = c("Pilot + Wave I Validation", 
+                   levels = c("Pilot and Wave I Validation", 
                               "Wave II Validation", 
                               "All Waves of Validation"))) |> 
   ggplot(aes(x = COMP, fill = Finding)) + 
