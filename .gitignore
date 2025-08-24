@@ -12,3 +12,5 @@ ali_sims_params_cache/latex/
 *.rdb
 
 sim-scripts/Archived/ali_sims_params_cache/latex/
+
+analysis/patient-data/
