@@ -96,4 +96,4 @@ data |>
        y = "Validated Allostatic Load Index\nComponent (from Chart Review)") + 
   facet_wrap(~DATA)
 ggsave(filename = "~/Documents/ALI_EHR/figures/Fig6_Heatmap.png",
-       device = "png", width = 8, height = 4, units = "in")
+       device = "png", width = 9, height = 4, units = "in")
