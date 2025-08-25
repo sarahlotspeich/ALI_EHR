@@ -4,7 +4,7 @@ library(naniar) ## for missing data plots
 
 # Load data
 ## Error-Prone Data from the EHR
-summ_data = read.csv("~/Documents/Allostatic_load_audits/summary_data.csv") |> 
+summ_data = read.csv("~/Documents/ALI_EHR/analysis/patient-data/summary_data.csv") |> 
   mutate(ANY_ENCOUNTERS = as.numeric(NUM_ENCOUNTERS > 0)) ### Create indicator of >= 1 healthcare encounter (ED visit or hospital admission)
 
 ## Subset to only the variables needed for the analysis 
