@@ -7,8 +7,8 @@ library(ggplot2) ## for pretty plots
 cols = c("#ff99ff", "#8bdddb", "#787ff6", "#ffbd59", "#7dd5f6")
 
 # Load data
-## ALI components before and after validation (waves separately)
-all_data = read.csv("~/Documents/Allostatic_load_audits/all_ali_dat.csv") |> 
+## ALI components before and after validation (all waves)
+all_data = read.csv("~/Documents/ALI_EHR/analysis/patient-data/all_ali_dat.csv") |> 
   mutate(DATA = case_when(DATA == "Wave II Validation" ~ "All Waves of Validation", 
                           .default = DATA))
 
@@ -38,6 +38,10 @@ num_miss |>
                        levels = c("EHR (Before Validation)", 
                                   "Pilot + Wave I Validation", 
                                   "Wave II Validation", 
+                                  "All Waves of Validation"), 
+                       labels = c("EHR (Before Validation)", 
+                                  "Pilot and Wave I Validation", 
+                                  "Wave II Validation", 
                                   "All Waves of Validation"))) |> 
   ggplot(aes(x = Variable, 
              y = Num_Missing, 
@@ -65,5 +69,5 @@ num_miss |>
   scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = 8))
 
 ## Save it 
-ggsave(filename = "~/Documents/ALI_EHR/figures/FigS3A_missing_by_component.png", 
+ggsave(filename = "~/Documents/ALI_EHR/figures/FigS5A_missing_by_component.png", 
        device = "png", width = 10, height = 6, units = "in")

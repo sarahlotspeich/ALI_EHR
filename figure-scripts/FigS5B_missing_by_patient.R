@@ -8,7 +8,7 @@ cols = c("#ff99ff", "#8bdddb", "#787ff6", "#ffbd59", "#7dd5f6")
 
 # Load data
 ## ALI components before and after validation (all waves)
-all_data = read.csv("~/Documents/Allostatic_load_audits/all_ali_dat.csv") |> 
+all_data = read.csv("~/Documents/ALI_EHR/analysis/patient-data/all_ali_dat.csv") |> 
   mutate(DATA = case_when(DATA == "Wave II Validation" ~ "All Waves of Validation", 
                           .default = DATA))
 
@@ -20,12 +20,16 @@ all_data$NUM_MISSING = apply(X = all_data[, -c(1:7, 18)],
 # Create bar plot of missing values per patient (colored by wave)
 all_combn = expand.grid(NUM_MISSING = 0:10, 
                         DATA = c("EHR (Before Validation)", 
-                                 "Pilot + Wave I Validation", 
+                                 "Pilot and Wave I Validation", 
                                  "All Waves of Validation"))
 all_data |> 
   mutate(DATA = factor(x = DATA, 
                        levels = c("EHR (Before Validation)", 
                                   "Pilot + Wave I Validation", 
+                                  "Wave II Validation", 
+                                  "All Waves of Validation"), 
+                       labels = c("EHR (Before Validation)", 
+                                  "Pilot and Wave I Validation", 
                                   "Wave II Validation", 
                                   "All Waves of Validation"))) |>
   group_by(DATA, NUM_MISSING) |> 
@@ -58,5 +62,5 @@ all_data |>
   scale_x_continuous(breaks = 0:10)
 
 ## Save it 
-ggsave(filename = "~/Documents/ALI_EHR/figures/FigS3B_missing_by_patient.png", 
+ggsave(filename = "~/Documents/ALI_EHR/figures/FigS5B_missing_by_patient.png", 
        device = "png", width = 10, height = 6, units = "in")
