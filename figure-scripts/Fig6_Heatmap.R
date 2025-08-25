@@ -52,6 +52,19 @@ data = comb_val_data |>
 ### True positive rate (TPR) = P(UNVAL = 1 | VAL = 1)
 ### False positive rate (FPR) = P(UNVAL = 1 | VAL = 0)
 data |> 
+  group_by(DATA, PAT_MRN_ID) |> 
+  summarize(Num_Nonmiss_Unval = sum(UNVAL != "Missing"), 
+            Num_Nonmiss_Val = sum(VAL != "Missing")) |> 
+  group_by(DATA) |> 
+  summarize(Median_Unval = median(Num_Nonmiss_Unval), 
+            Mean_Unval = mean(Num_Nonmiss_Unval), 
+            Median_Val = median(Num_Nonmiss_Val), 
+            Mean_Val = mean(Num_Nonmiss_Val))
+
+## Calculate error rates and data recovery
+### True positive rate (TPR) = P(UNVAL = 1 | VAL = 1)
+### False positive rate (FPR) = P(UNVAL = 1 | VAL = 0)
+data |> 
   group_by(DATA) |> 
   summarize(TPR = sum(UNVAL == "Yes" & VAL == "Yes") / sum(VAL == "Yes" & UNVAL != "Missing"), 
             FPR = sum(UNVAL == "Yes" & VAL == "Yes") / sum(VAL == "Yes" & UNVAL != "Missing"), 
