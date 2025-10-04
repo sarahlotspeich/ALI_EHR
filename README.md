@@ -1,6 +1,6 @@
 # Overcoming data challenges with enriched validation and targeted sampling to measure whole-person health in electronic health records
 
-### `R` code and simulation data to reproduce results from the manuscript by [Lotspeich et al. (2025)]([https://arxiv.org/abs/2502.05380](https://doi.org/10.1016/j.jbi.2025.104904)). 
+### `R` code and simulation data to reproduce results from the manuscript by [Lotspeich et al. (2025)](https://doi.org/10.1016/j.jbi.2025.104904)). 
 
 This code relies on two `R` packages developed to accompany the paper, among other standard packages available from CRAN.  
   
